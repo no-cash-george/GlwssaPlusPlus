@@ -1,5 +1,5 @@
 # Glwssa++
-A glwssa transpiler + IDE writen in java 
+A "ΓΛΏΣΣΑ" transpiler + IDE writen in java 
 
 Work in progress
 
