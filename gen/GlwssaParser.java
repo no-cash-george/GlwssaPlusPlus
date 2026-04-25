@@ -17,18 +17,19 @@ public class GlwssaParser extends Parser {
 		new PredictionContextCache();
 	public static final int
 		T__0=1, T__1=2, T__2=3, PROGRAM_KW=4, VARS_KW=5, START_KW=6, END_KW=7, 
-		PRINT_KW=8, READ_KW=9, TYPE_KW=10, TRUE_KW=11, FALSE_KW=12, ASSIGN=13, 
-		PLUS=14, MINUS=15, MULT=16, SLASH=17, DIV_KW=18, MOD_KW=19, EQ=20, NEQ=21, 
-		LT=22, GT=23, LTE=24, GTE=25, ID=26, NUMBER=27, STRING=28, COMMENT=29, 
-		WS=30;
+		PRINT_KW=8, READ_KW=9, IF_KW=10, THEN_KW=11, ELSE_IF_KW=12, ELSE_KW=13, 
+		END_IF_KW=14, TYPE_KW=15, TRUE_KW=16, FALSE_KW=17, ASSIGN=18, PLUS=19, 
+		MINUS=20, MULT=21, SLASH=22, DIV_KW=23, MOD_KW=24, EQ=25, NEQ=26, LT=27, 
+		GT=28, LTE=29, GTE=30, ID=31, NUMBER=32, STRING=33, COMMENT=34, WS=35;
 	public static final int
 		RULE_program = 0, RULE_declarations = 1, RULE_var_decl = 2, RULE_statement = 3, 
 		RULE_assignment = 4, RULE_print_stmnt = 5, RULE_print_item = 6, RULE_read_stmnt = 7, 
-		RULE_expr = 8;
+		RULE_if_stmnt = 8, RULE_else_if_block = 9, RULE_else_block = 10, RULE_expr = 11;
 	private static String[] makeRuleNames() {
 		return new String[] {
 			"program", "declarations", "var_decl", "statement", "assignment", "print_stmnt", 
-			"print_item", "read_stmnt", "expr"
+			"print_item", "read_stmnt", "if_stmnt", "else_if_block", "else_block", 
+			"expr"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -39,6 +40,8 @@ public class GlwssaParser extends Parser {
 			"'\\u039C\\u0395\\u03A4\\u0391\\u0392\\u039B\\u0397\\u03A4\\u0395\\u03A3'", 
 			"'\\u0391\\u03A1\\u03A7\\u0397'", "'\\u03A4\\u0395\\u039B\\u039F\\u03A3_\\u03A0\\u03A1\\u039F\\u0393\\u03A1\\u0391\\u039C\\u039C\\u0391\\u03A4\\u039F\\u03A3'", 
 			"'\\u0393\\u03A1\\u0391\\u03A8\\u0395'", "'\\u0394\\u0399\\u0391\\u0392\\u0391\\u03A3\\u0395'", 
+			"'\\u0391\\u039D'", "'\\u03A4\\u039F\\u03A4\\u0395'", "'\\u0391\\u039B\\u039B\\u0399\\u03A9\\u03A3_\\u0391\\u039D'", 
+			"'\\u0391\\u039B\\u039B\\u0399\\u03A9\\u03A3'", "'\\u03A4\\u0395\\u039B\\u039F\\u03A3_\\u0391\\u039D'", 
 			null, "'\\u0391\\u039B\\u0397\\u0398\\u0397\\u03A3'", "'\\u03A8\\u0395\\u03A5\\u0394\\u0397\\u03A3'", 
 			"'<-'", "'+'", "'-'", "'*'", "'/'", "'DIV'", "'MOD'", "'='", "'<>'", 
 			"'<'", "'>'", "'<='", "'>='"
@@ -48,9 +51,10 @@ public class GlwssaParser extends Parser {
 	private static String[] makeSymbolicNames() {
 		return new String[] {
 			null, null, null, null, "PROGRAM_KW", "VARS_KW", "START_KW", "END_KW", 
-			"PRINT_KW", "READ_KW", "TYPE_KW", "TRUE_KW", "FALSE_KW", "ASSIGN", "PLUS", 
-			"MINUS", "MULT", "SLASH", "DIV_KW", "MOD_KW", "EQ", "NEQ", "LT", "GT", 
-			"LTE", "GTE", "ID", "NUMBER", "STRING", "COMMENT", "WS"
+			"PRINT_KW", "READ_KW", "IF_KW", "THEN_KW", "ELSE_IF_KW", "ELSE_KW", "END_IF_KW", 
+			"TYPE_KW", "TRUE_KW", "FALSE_KW", "ASSIGN", "PLUS", "MINUS", "MULT", 
+			"SLASH", "DIV_KW", "MOD_KW", "EQ", "NEQ", "LT", "GT", "LTE", "GTE", "ID", 
+			"NUMBER", "STRING", "COMMENT", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -145,29 +149,29 @@ public class GlwssaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(18);
+			setState(24);
 			match(PROGRAM_KW);
-			setState(19);
-			match(ID);
-			setState(20);
-			declarations();
-			setState(21);
-			match(START_KW);
 			setState(25);
+			match(ID);
+			setState(26);
+			declarations();
+			setState(27);
+			match(START_KW);
+			setState(31);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 67109632L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 2147485440L) != 0)) {
 				{
 				{
-				setState(22);
+				setState(28);
 				statement();
 				}
 				}
-				setState(27);
+				setState(33);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(28);
+			setState(34);
 			match(END_KW);
 			}
 		}
@@ -217,19 +221,19 @@ public class GlwssaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(30);
+			setState(36);
 			match(VARS_KW);
-			setState(34);
+			setState(40);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==TYPE_KW) {
 				{
 				{
-				setState(31);
+				setState(37);
 				var_decl();
 				}
 				}
-				setState(36);
+				setState(42);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -279,23 +283,23 @@ public class GlwssaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(37);
-			match(TYPE_KW);
-			setState(38);
-			match(ID);
 			setState(43);
+			match(TYPE_KW);
+			setState(44);
+			match(ID);
+			setState(49);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(39);
+				setState(45);
 				match(T__0);
-				setState(40);
+				setState(46);
 				match(ID);
 				}
 				}
-				setState(45);
+				setState(51);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -323,6 +327,9 @@ public class GlwssaParser extends Parser {
 		public Read_stmntContext read_stmnt() {
 			return getRuleContext(Read_stmntContext.class,0);
 		}
+		public If_stmntContext if_stmnt() {
+			return getRuleContext(If_stmntContext.class,0);
+		}
 		public StatementContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -346,28 +353,35 @@ public class GlwssaParser extends Parser {
 		StatementContext _localctx = new StatementContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_statement);
 		try {
-			setState(49);
+			setState(56);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case ID:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(46);
+				setState(52);
 				assignment();
 				}
 				break;
 			case PRINT_KW:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(47);
+				setState(53);
 				print_stmnt();
 				}
 				break;
 			case READ_KW:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(48);
+				setState(54);
 				read_stmnt();
+				}
+				break;
+			case IF_KW:
+				enterOuterAlt(_localctx, 4);
+				{
+				setState(55);
+				if_stmnt();
 				}
 				break;
 			default:
@@ -417,11 +431,11 @@ public class GlwssaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(51);
+			setState(58);
 			match(ID);
-			setState(52);
+			setState(59);
 			match(ASSIGN);
-			setState(53);
+			setState(60);
 			expr(0);
 			}
 		}
@@ -471,23 +485,23 @@ public class GlwssaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(55);
+			setState(62);
 			match(PRINT_KW);
-			setState(56);
+			setState(63);
 			print_item();
-			setState(61);
+			setState(68);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(57);
+				setState(64);
 				match(T__0);
-				setState(58);
+				setState(65);
 				print_item();
 				}
 				}
-				setState(63);
+				setState(70);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -533,7 +547,7 @@ public class GlwssaParser extends Parser {
 		Print_itemContext _localctx = new Print_itemContext(_ctx, getState());
 		enterRule(_localctx, 12, RULE_print_item);
 		try {
-			setState(66);
+			setState(73);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case T__1:
@@ -543,14 +557,14 @@ public class GlwssaParser extends Parser {
 			case NUMBER:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(64);
+				setState(71);
 				expr(0);
 				}
 				break;
 			case STRING:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(65);
+				setState(72);
 				match(STRING);
 				}
 				break;
@@ -602,23 +616,267 @@ public class GlwssaParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(68);
+			setState(75);
 			match(READ_KW);
-			setState(69);
+			setState(76);
 			match(ID);
-			setState(74);
+			setState(81);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==T__0) {
 				{
 				{
-				setState(70);
+				setState(77);
 				match(T__0);
-				setState(71);
+				setState(78);
 				match(ID);
 				}
 				}
-				setState(76);
+				setState(83);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class If_stmntContext extends ParserRuleContext {
+		public TerminalNode IF_KW() { return getToken(GlwssaParser.IF_KW, 0); }
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public TerminalNode THEN_KW() { return getToken(GlwssaParser.THEN_KW, 0); }
+		public TerminalNode END_IF_KW() { return getToken(GlwssaParser.END_IF_KW, 0); }
+		public List<StatementContext> statement() {
+			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
+		}
+		public List<Else_if_blockContext> else_if_block() {
+			return getRuleContexts(Else_if_blockContext.class);
+		}
+		public Else_if_blockContext else_if_block(int i) {
+			return getRuleContext(Else_if_blockContext.class,i);
+		}
+		public Else_blockContext else_block() {
+			return getRuleContext(Else_blockContext.class,0);
+		}
+		public If_stmntContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_if_stmnt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof GlwssaListener ) ((GlwssaListener)listener).enterIf_stmnt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof GlwssaListener ) ((GlwssaListener)listener).exitIf_stmnt(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof GlwssaVisitor ) return ((GlwssaVisitor<? extends T>)visitor).visitIf_stmnt(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final If_stmntContext if_stmnt() throws RecognitionException {
+		If_stmntContext _localctx = new If_stmntContext(_ctx, getState());
+		enterRule(_localctx, 16, RULE_if_stmnt);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(84);
+			match(IF_KW);
+			setState(85);
+			expr(0);
+			setState(86);
+			match(THEN_KW);
+			setState(90);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 2147485440L) != 0)) {
+				{
+				{
+				setState(87);
+				statement();
+				}
+				}
+				setState(92);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			setState(96);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==ELSE_IF_KW) {
+				{
+				{
+				setState(93);
+				else_if_block();
+				}
+				}
+				setState(98);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			setState(100);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==ELSE_KW) {
+				{
+				setState(99);
+				else_block();
+				}
+			}
+
+			setState(102);
+			match(END_IF_KW);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Else_if_blockContext extends ParserRuleContext {
+		public TerminalNode ELSE_IF_KW() { return getToken(GlwssaParser.ELSE_IF_KW, 0); }
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public TerminalNode THEN_KW() { return getToken(GlwssaParser.THEN_KW, 0); }
+		public List<StatementContext> statement() {
+			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
+		}
+		public Else_if_blockContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_else_if_block; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof GlwssaListener ) ((GlwssaListener)listener).enterElse_if_block(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof GlwssaListener ) ((GlwssaListener)listener).exitElse_if_block(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof GlwssaVisitor ) return ((GlwssaVisitor<? extends T>)visitor).visitElse_if_block(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Else_if_blockContext else_if_block() throws RecognitionException {
+		Else_if_blockContext _localctx = new Else_if_blockContext(_ctx, getState());
+		enterRule(_localctx, 18, RULE_else_if_block);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(104);
+			match(ELSE_IF_KW);
+			setState(105);
+			expr(0);
+			setState(106);
+			match(THEN_KW);
+			setState(110);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 2147485440L) != 0)) {
+				{
+				{
+				setState(107);
+				statement();
+				}
+				}
+				setState(112);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class Else_blockContext extends ParserRuleContext {
+		public TerminalNode ELSE_KW() { return getToken(GlwssaParser.ELSE_KW, 0); }
+		public List<StatementContext> statement() {
+			return getRuleContexts(StatementContext.class);
+		}
+		public StatementContext statement(int i) {
+			return getRuleContext(StatementContext.class,i);
+		}
+		public Else_blockContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_else_block; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof GlwssaListener ) ((GlwssaListener)listener).enterElse_block(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof GlwssaListener ) ((GlwssaListener)listener).exitElse_block(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof GlwssaVisitor ) return ((GlwssaVisitor<? extends T>)visitor).visitElse_block(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final Else_blockContext else_block() throws RecognitionException {
+		Else_blockContext _localctx = new Else_blockContext(_ctx, getState());
+		enterRule(_localctx, 20, RULE_else_block);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(113);
+			match(ELSE_KW);
+			setState(117);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 2147485440L) != 0)) {
+				{
+				{
+				setState(114);
+				statement();
+				}
+				}
+				setState(119);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -792,14 +1050,14 @@ public class GlwssaParser extends Parser {
 		int _parentState = getState();
 		ExprContext _localctx = new ExprContext(_ctx, _parentState);
 		ExprContext _prevctx = _localctx;
-		int _startState = 16;
-		enterRecursionRule(_localctx, 16, RULE_expr, _p);
+		int _startState = 22;
+		enterRecursionRule(_localctx, 22, RULE_expr, _p);
 		int _la;
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(86);
+			setState(129);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case NUMBER:
@@ -808,7 +1066,7 @@ public class GlwssaParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
-				setState(78);
+				setState(121);
 				match(NUMBER);
 				}
 				break;
@@ -817,7 +1075,7 @@ public class GlwssaParser extends Parser {
 				_localctx = new IdExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(79);
+				setState(122);
 				match(ID);
 				}
 				break;
@@ -826,7 +1084,7 @@ public class GlwssaParser extends Parser {
 				_localctx = new BoolExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(80);
+				setState(123);
 				match(TRUE_KW);
 				}
 				break;
@@ -835,7 +1093,7 @@ public class GlwssaParser extends Parser {
 				_localctx = new BoolExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(81);
+				setState(124);
 				match(FALSE_KW);
 				}
 				break;
@@ -844,11 +1102,11 @@ public class GlwssaParser extends Parser {
 				_localctx = new ParenExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(82);
+				setState(125);
 				match(T__1);
-				setState(83);
+				setState(126);
 				expr(0);
-				setState(84);
+				setState(127);
 				match(T__2);
 				}
 				break;
@@ -856,27 +1114,27 @@ public class GlwssaParser extends Parser {
 				throw new NoViableAltException(this);
 			}
 			_ctx.stop = _input.LT(-1);
-			setState(99);
+			setState(142);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,9,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,14,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					if ( _parseListeners!=null ) triggerExitRuleEvent();
 					_prevctx = _localctx;
 					{
-					setState(97);
+					setState(140);
 					_errHandler.sync(this);
-					switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
+					switch ( getInterpreter().adaptivePredict(_input,13,_ctx) ) {
 					case 1:
 						{
 						_localctx = new MathExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(88);
+						setState(131);
 						if (!(precpred(_ctx, 8))) throw new FailedPredicateException(this, "precpred(_ctx, 8)");
-						setState(89);
+						setState(132);
 						((MathExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 983040L) != 0)) ) {
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 31457280L) != 0)) ) {
 							((MathExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -884,7 +1142,7 @@ public class GlwssaParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(90);
+						setState(133);
 						expr(9);
 						}
 						break;
@@ -892,9 +1150,9 @@ public class GlwssaParser extends Parser {
 						{
 						_localctx = new MathExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(91);
+						setState(134);
 						if (!(precpred(_ctx, 7))) throw new FailedPredicateException(this, "precpred(_ctx, 7)");
-						setState(92);
+						setState(135);
 						((MathExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==PLUS || _la==MINUS) ) {
@@ -905,7 +1163,7 @@ public class GlwssaParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(93);
+						setState(136);
 						expr(8);
 						}
 						break;
@@ -913,12 +1171,12 @@ public class GlwssaParser extends Parser {
 						{
 						_localctx = new RelationalExprContext(new ExprContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expr);
-						setState(94);
+						setState(137);
 						if (!(precpred(_ctx, 6))) throw new FailedPredicateException(this, "precpred(_ctx, 6)");
-						setState(95);
+						setState(138);
 						((RelationalExprContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 66060288L) != 0)) ) {
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 2113929216L) != 0)) ) {
 							((RelationalExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -926,16 +1184,16 @@ public class GlwssaParser extends Parser {
 							_errHandler.reportMatch(this);
 							consume();
 						}
-						setState(96);
+						setState(139);
 						expr(7);
 						}
 						break;
 					}
 					} 
 				}
-				setState(101);
+				setState(144);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,9,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,14,_ctx);
 			}
 			}
 		}
@@ -952,7 +1210,7 @@ public class GlwssaParser extends Parser {
 
 	public boolean sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
 		switch (ruleIndex) {
-		case 8:
+		case 11:
 			return expr_sempred((ExprContext)_localctx, predIndex);
 		}
 		return true;
@@ -970,65 +1228,91 @@ public class GlwssaParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u001eg\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001#\u0092\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0002"+
 		"\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007\u0002"+
-		"\b\u0007\b\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000"+
-		"\u0005\u0000\u0018\b\u0000\n\u0000\f\u0000\u001b\t\u0000\u0001\u0000\u0001"+
-		"\u0000\u0001\u0001\u0001\u0001\u0005\u0001!\b\u0001\n\u0001\f\u0001$\t"+
-		"\u0001\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0005\u0002*\b"+
-		"\u0002\n\u0002\f\u0002-\t\u0002\u0001\u0003\u0001\u0003\u0001\u0003\u0003"+
-		"\u00032\b\u0003\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
-		"\u0005\u0001\u0005\u0001\u0005\u0001\u0005\u0005\u0005<\b\u0005\n\u0005"+
-		"\f\u0005?\t\u0005\u0001\u0006\u0001\u0006\u0003\u0006C\b\u0006\u0001\u0007"+
-		"\u0001\u0007\u0001\u0007\u0001\u0007\u0005\u0007I\b\u0007\n\u0007\f\u0007"+
-		"L\t\u0007\u0001\b\u0001\b\u0001\b\u0001\b\u0001\b\u0001\b\u0001\b\u0001"+
-		"\b\u0001\b\u0003\bW\b\b\u0001\b\u0001\b\u0001\b\u0001\b\u0001\b\u0001"+
-		"\b\u0001\b\u0001\b\u0001\b\u0005\bb\b\b\n\b\f\be\t\b\u0001\b\u0000\u0001"+
-		"\u0010\t\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0000\u0003\u0001\u0000"+
-		"\u0010\u0013\u0001\u0000\u000e\u000f\u0001\u0000\u0014\u0019l\u0000\u0012"+
-		"\u0001\u0000\u0000\u0000\u0002\u001e\u0001\u0000\u0000\u0000\u0004%\u0001"+
-		"\u0000\u0000\u0000\u00061\u0001\u0000\u0000\u0000\b3\u0001\u0000\u0000"+
-		"\u0000\n7\u0001\u0000\u0000\u0000\fB\u0001\u0000\u0000\u0000\u000eD\u0001"+
-		"\u0000\u0000\u0000\u0010V\u0001\u0000\u0000\u0000\u0012\u0013\u0005\u0004"+
-		"\u0000\u0000\u0013\u0014\u0005\u001a\u0000\u0000\u0014\u0015\u0003\u0002"+
-		"\u0001\u0000\u0015\u0019\u0005\u0006\u0000\u0000\u0016\u0018\u0003\u0006"+
-		"\u0003\u0000\u0017\u0016\u0001\u0000\u0000\u0000\u0018\u001b\u0001\u0000"+
-		"\u0000\u0000\u0019\u0017\u0001\u0000\u0000\u0000\u0019\u001a\u0001\u0000"+
-		"\u0000\u0000\u001a\u001c\u0001\u0000\u0000\u0000\u001b\u0019\u0001\u0000"+
-		"\u0000\u0000\u001c\u001d\u0005\u0007\u0000\u0000\u001d\u0001\u0001\u0000"+
-		"\u0000\u0000\u001e\"\u0005\u0005\u0000\u0000\u001f!\u0003\u0004\u0002"+
-		"\u0000 \u001f\u0001\u0000\u0000\u0000!$\u0001\u0000\u0000\u0000\" \u0001"+
-		"\u0000\u0000\u0000\"#\u0001\u0000\u0000\u0000#\u0003\u0001\u0000\u0000"+
-		"\u0000$\"\u0001\u0000\u0000\u0000%&\u0005\n\u0000\u0000&+\u0005\u001a"+
-		"\u0000\u0000\'(\u0005\u0001\u0000\u0000(*\u0005\u001a\u0000\u0000)\'\u0001"+
-		"\u0000\u0000\u0000*-\u0001\u0000\u0000\u0000+)\u0001\u0000\u0000\u0000"+
-		"+,\u0001\u0000\u0000\u0000,\u0005\u0001\u0000\u0000\u0000-+\u0001\u0000"+
-		"\u0000\u0000.2\u0003\b\u0004\u0000/2\u0003\n\u0005\u000002\u0003\u000e"+
-		"\u0007\u00001.\u0001\u0000\u0000\u00001/\u0001\u0000\u0000\u000010\u0001"+
-		"\u0000\u0000\u00002\u0007\u0001\u0000\u0000\u000034\u0005\u001a\u0000"+
-		"\u000045\u0005\r\u0000\u000056\u0003\u0010\b\u00006\t\u0001\u0000\u0000"+
-		"\u000078\u0005\b\u0000\u00008=\u0003\f\u0006\u00009:\u0005\u0001\u0000"+
-		"\u0000:<\u0003\f\u0006\u0000;9\u0001\u0000\u0000\u0000<?\u0001\u0000\u0000"+
-		"\u0000=;\u0001\u0000\u0000\u0000=>\u0001\u0000\u0000\u0000>\u000b\u0001"+
-		"\u0000\u0000\u0000?=\u0001\u0000\u0000\u0000@C\u0003\u0010\b\u0000AC\u0005"+
-		"\u001c\u0000\u0000B@\u0001\u0000\u0000\u0000BA\u0001\u0000\u0000\u0000"+
-		"C\r\u0001\u0000\u0000\u0000DE\u0005\t\u0000\u0000EJ\u0005\u001a\u0000"+
-		"\u0000FG\u0005\u0001\u0000\u0000GI\u0005\u001a\u0000\u0000HF\u0001\u0000"+
-		"\u0000\u0000IL\u0001\u0000\u0000\u0000JH\u0001\u0000\u0000\u0000JK\u0001"+
-		"\u0000\u0000\u0000K\u000f\u0001\u0000\u0000\u0000LJ\u0001\u0000\u0000"+
-		"\u0000MN\u0006\b\uffff\uffff\u0000NW\u0005\u001b\u0000\u0000OW\u0005\u001a"+
-		"\u0000\u0000PW\u0005\u000b\u0000\u0000QW\u0005\f\u0000\u0000RS\u0005\u0002"+
-		"\u0000\u0000ST\u0003\u0010\b\u0000TU\u0005\u0003\u0000\u0000UW\u0001\u0000"+
-		"\u0000\u0000VM\u0001\u0000\u0000\u0000VO\u0001\u0000\u0000\u0000VP\u0001"+
-		"\u0000\u0000\u0000VQ\u0001\u0000\u0000\u0000VR\u0001\u0000\u0000\u0000"+
-		"Wc\u0001\u0000\u0000\u0000XY\n\b\u0000\u0000YZ\u0007\u0000\u0000\u0000"+
-		"Zb\u0003\u0010\b\t[\\\n\u0007\u0000\u0000\\]\u0007\u0001\u0000\u0000]"+
-		"b\u0003\u0010\b\b^_\n\u0006\u0000\u0000_`\u0007\u0002\u0000\u0000`b\u0003"+
-		"\u0010\b\u0007aX\u0001\u0000\u0000\u0000a[\u0001\u0000\u0000\u0000a^\u0001"+
-		"\u0000\u0000\u0000be\u0001\u0000\u0000\u0000ca\u0001\u0000\u0000\u0000"+
-		"cd\u0001\u0000\u0000\u0000d\u0011\u0001\u0000\u0000\u0000ec\u0001\u0000"+
-		"\u0000\u0000\n\u0019\"+1=BJVac";
+		"\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b\u0001"+
+		"\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0005\u0000\u001e"+
+		"\b\u0000\n\u0000\f\u0000!\t\u0000\u0001\u0000\u0001\u0000\u0001\u0001"+
+		"\u0001\u0001\u0005\u0001\'\b\u0001\n\u0001\f\u0001*\t\u0001\u0001\u0002"+
+		"\u0001\u0002\u0001\u0002\u0001\u0002\u0005\u00020\b\u0002\n\u0002\f\u0002"+
+		"3\t\u0002\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0003\u0003"+
+		"9\b\u0003\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0005"+
+		"\u0001\u0005\u0001\u0005\u0001\u0005\u0005\u0005C\b\u0005\n\u0005\f\u0005"+
+		"F\t\u0005\u0001\u0006\u0001\u0006\u0003\u0006J\b\u0006\u0001\u0007\u0001"+
+		"\u0007\u0001\u0007\u0001\u0007\u0005\u0007P\b\u0007\n\u0007\f\u0007S\t"+
+		"\u0007\u0001\b\u0001\b\u0001\b\u0001\b\u0005\bY\b\b\n\b\f\b\\\t\b\u0001"+
+		"\b\u0005\b_\b\b\n\b\f\bb\t\b\u0001\b\u0003\be\b\b\u0001\b\u0001\b\u0001"+
+		"\t\u0001\t\u0001\t\u0001\t\u0005\tm\b\t\n\t\f\tp\t\t\u0001\n\u0001\n\u0005"+
+		"\nt\b\n\n\n\f\nw\t\n\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001"+
+		"\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0003\u000b\u0082"+
+		"\b\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0001"+
+		"\u000b\u0001\u000b\u0001\u000b\u0001\u000b\u0005\u000b\u008d\b\u000b\n"+
+		"\u000b\f\u000b\u0090\t\u000b\u0001\u000b\u0000\u0001\u0016\f\u0000\u0002"+
+		"\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0000\u0003\u0001\u0000"+
+		"\u0015\u0018\u0001\u0000\u0013\u0014\u0001\u0000\u0019\u001e\u009a\u0000"+
+		"\u0018\u0001\u0000\u0000\u0000\u0002$\u0001\u0000\u0000\u0000\u0004+\u0001"+
+		"\u0000\u0000\u0000\u00068\u0001\u0000\u0000\u0000\b:\u0001\u0000\u0000"+
+		"\u0000\n>\u0001\u0000\u0000\u0000\fI\u0001\u0000\u0000\u0000\u000eK\u0001"+
+		"\u0000\u0000\u0000\u0010T\u0001\u0000\u0000\u0000\u0012h\u0001\u0000\u0000"+
+		"\u0000\u0014q\u0001\u0000\u0000\u0000\u0016\u0081\u0001\u0000\u0000\u0000"+
+		"\u0018\u0019\u0005\u0004\u0000\u0000\u0019\u001a\u0005\u001f\u0000\u0000"+
+		"\u001a\u001b\u0003\u0002\u0001\u0000\u001b\u001f\u0005\u0006\u0000\u0000"+
+		"\u001c\u001e\u0003\u0006\u0003\u0000\u001d\u001c\u0001\u0000\u0000\u0000"+
+		"\u001e!\u0001\u0000\u0000\u0000\u001f\u001d\u0001\u0000\u0000\u0000\u001f"+
+		" \u0001\u0000\u0000\u0000 \"\u0001\u0000\u0000\u0000!\u001f\u0001\u0000"+
+		"\u0000\u0000\"#\u0005\u0007\u0000\u0000#\u0001\u0001\u0000\u0000\u0000"+
+		"$(\u0005\u0005\u0000\u0000%\'\u0003\u0004\u0002\u0000&%\u0001\u0000\u0000"+
+		"\u0000\'*\u0001\u0000\u0000\u0000(&\u0001\u0000\u0000\u0000()\u0001\u0000"+
+		"\u0000\u0000)\u0003\u0001\u0000\u0000\u0000*(\u0001\u0000\u0000\u0000"+
+		"+,\u0005\u000f\u0000\u0000,1\u0005\u001f\u0000\u0000-.\u0005\u0001\u0000"+
+		"\u0000.0\u0005\u001f\u0000\u0000/-\u0001\u0000\u0000\u000003\u0001\u0000"+
+		"\u0000\u00001/\u0001\u0000\u0000\u000012\u0001\u0000\u0000\u00002\u0005"+
+		"\u0001\u0000\u0000\u000031\u0001\u0000\u0000\u000049\u0003\b\u0004\u0000"+
+		"59\u0003\n\u0005\u000069\u0003\u000e\u0007\u000079\u0003\u0010\b\u0000"+
+		"84\u0001\u0000\u0000\u000085\u0001\u0000\u0000\u000086\u0001\u0000\u0000"+
+		"\u000087\u0001\u0000\u0000\u00009\u0007\u0001\u0000\u0000\u0000:;\u0005"+
+		"\u001f\u0000\u0000;<\u0005\u0012\u0000\u0000<=\u0003\u0016\u000b\u0000"+
+		"=\t\u0001\u0000\u0000\u0000>?\u0005\b\u0000\u0000?D\u0003\f\u0006\u0000"+
+		"@A\u0005\u0001\u0000\u0000AC\u0003\f\u0006\u0000B@\u0001\u0000\u0000\u0000"+
+		"CF\u0001\u0000\u0000\u0000DB\u0001\u0000\u0000\u0000DE\u0001\u0000\u0000"+
+		"\u0000E\u000b\u0001\u0000\u0000\u0000FD\u0001\u0000\u0000\u0000GJ\u0003"+
+		"\u0016\u000b\u0000HJ\u0005!\u0000\u0000IG\u0001\u0000\u0000\u0000IH\u0001"+
+		"\u0000\u0000\u0000J\r\u0001\u0000\u0000\u0000KL\u0005\t\u0000\u0000LQ"+
+		"\u0005\u001f\u0000\u0000MN\u0005\u0001\u0000\u0000NP\u0005\u001f\u0000"+
+		"\u0000OM\u0001\u0000\u0000\u0000PS\u0001\u0000\u0000\u0000QO\u0001\u0000"+
+		"\u0000\u0000QR\u0001\u0000\u0000\u0000R\u000f\u0001\u0000\u0000\u0000"+
+		"SQ\u0001\u0000\u0000\u0000TU\u0005\n\u0000\u0000UV\u0003\u0016\u000b\u0000"+
+		"VZ\u0005\u000b\u0000\u0000WY\u0003\u0006\u0003\u0000XW\u0001\u0000\u0000"+
+		"\u0000Y\\\u0001\u0000\u0000\u0000ZX\u0001\u0000\u0000\u0000Z[\u0001\u0000"+
+		"\u0000\u0000[`\u0001\u0000\u0000\u0000\\Z\u0001\u0000\u0000\u0000]_\u0003"+
+		"\u0012\t\u0000^]\u0001\u0000\u0000\u0000_b\u0001\u0000\u0000\u0000`^\u0001"+
+		"\u0000\u0000\u0000`a\u0001\u0000\u0000\u0000ad\u0001\u0000\u0000\u0000"+
+		"b`\u0001\u0000\u0000\u0000ce\u0003\u0014\n\u0000dc\u0001\u0000\u0000\u0000"+
+		"de\u0001\u0000\u0000\u0000ef\u0001\u0000\u0000\u0000fg\u0005\u000e\u0000"+
+		"\u0000g\u0011\u0001\u0000\u0000\u0000hi\u0005\f\u0000\u0000ij\u0003\u0016"+
+		"\u000b\u0000jn\u0005\u000b\u0000\u0000km\u0003\u0006\u0003\u0000lk\u0001"+
+		"\u0000\u0000\u0000mp\u0001\u0000\u0000\u0000nl\u0001\u0000\u0000\u0000"+
+		"no\u0001\u0000\u0000\u0000o\u0013\u0001\u0000\u0000\u0000pn\u0001\u0000"+
+		"\u0000\u0000qu\u0005\r\u0000\u0000rt\u0003\u0006\u0003\u0000sr\u0001\u0000"+
+		"\u0000\u0000tw\u0001\u0000\u0000\u0000us\u0001\u0000\u0000\u0000uv\u0001"+
+		"\u0000\u0000\u0000v\u0015\u0001\u0000\u0000\u0000wu\u0001\u0000\u0000"+
+		"\u0000xy\u0006\u000b\uffff\uffff\u0000y\u0082\u0005 \u0000\u0000z\u0082"+
+		"\u0005\u001f\u0000\u0000{\u0082\u0005\u0010\u0000\u0000|\u0082\u0005\u0011"+
+		"\u0000\u0000}~\u0005\u0002\u0000\u0000~\u007f\u0003\u0016\u000b\u0000"+
+		"\u007f\u0080\u0005\u0003\u0000\u0000\u0080\u0082\u0001\u0000\u0000\u0000"+
+		"\u0081x\u0001\u0000\u0000\u0000\u0081z\u0001\u0000\u0000\u0000\u0081{"+
+		"\u0001\u0000\u0000\u0000\u0081|\u0001\u0000\u0000\u0000\u0081}\u0001\u0000"+
+		"\u0000\u0000\u0082\u008e\u0001\u0000\u0000\u0000\u0083\u0084\n\b\u0000"+
+		"\u0000\u0084\u0085\u0007\u0000\u0000\u0000\u0085\u008d\u0003\u0016\u000b"+
+		"\t\u0086\u0087\n\u0007\u0000\u0000\u0087\u0088\u0007\u0001\u0000\u0000"+
+		"\u0088\u008d\u0003\u0016\u000b\b\u0089\u008a\n\u0006\u0000\u0000\u008a"+
+		"\u008b\u0007\u0002\u0000\u0000\u008b\u008d\u0003\u0016\u000b\u0007\u008c"+
+		"\u0083\u0001\u0000\u0000\u0000\u008c\u0086\u0001\u0000\u0000\u0000\u008c"+
+		"\u0089\u0001\u0000\u0000\u0000\u008d\u0090\u0001\u0000\u0000\u0000\u008e"+
+		"\u008c\u0001\u0000\u0000\u0000\u008e\u008f\u0001\u0000\u0000\u0000\u008f"+
+		"\u0017\u0001\u0000\u0000\u0000\u0090\u008e\u0001\u0000\u0000\u0000\u000f"+
+		"\u001f(18DIQZ`dnu\u0081\u008c\u008e";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

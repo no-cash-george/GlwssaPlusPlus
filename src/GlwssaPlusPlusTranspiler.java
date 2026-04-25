@@ -202,5 +202,68 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         return readCode.toString();
     }
 
+    @Override
+    public String visitIf_stmnt(GlwssaParser.If_stmntContext ctx)
+    {
+        StringBuilder ifCode = new StringBuilder();
 
+        String condition = visit(ctx.expr()); // main if condition
+
+        ifCode.append("if ( " + condition + " ) \n { \n");
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement()) // get inside statements
+        {
+            ifCode.append(visit(stmntCtx) + "\n");
+        }
+
+        ifCode.append("}\n");
+
+        for ( GlwssaParser.Else_if_blockContext elifCtx : ctx.else_if_block() ) // elif block evaluation
+        {
+            ifCode.append(visit(elifCtx));
+        }
+
+        if ( ctx.else_block() != null ) // else block exists?
+        {
+            ifCode.append(visit(ctx.else_block()));
+        }
+
+        return ifCode.toString();
+    }
+
+    @Override
+    public String visitElse_if_block(GlwssaParser.Else_if_blockContext ctx)
+    {
+        StringBuilder elifCode = new StringBuilder();
+
+        String condition = visit(ctx.expr()); // get elif expression
+
+        elifCode.append("else if ( " + condition + " ) \n{ \n");
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() ) // get inside statements
+        {
+            elifCode.append(visit(stmntCtx) + "\n");
+        }
+
+        elifCode.append("}\n");
+
+        return elifCode.toString();
+    }
+
+    @Override
+    public String visitElse_block ( GlwssaParser.Else_blockContext ctx )
+    {
+        StringBuilder elseCode = new StringBuilder();
+
+        elseCode.append("else \n{ \n");
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        {
+            elseCode.append(visit(stmntCtx) + "\n");
+        }
+
+        elseCode.append("}\n");
+
+        return elseCode.toString();
+    }
 }

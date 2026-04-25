@@ -14,7 +14,8 @@ var_decl : TYPE_KW ID (',' ID)* ;
 // 4. Statements: Supported : assignment, printing
 statement : assignment
           | print_stmnt
-          | read_stmnt ;
+          | read_stmnt
+          | if_stmnt ;
 
 // 5. Assignment
 assignment : ID ASSIGN expr ;
@@ -26,6 +27,13 @@ print_item : expr | STRING ;
 
 // 7. Read Statement
 read_stmnt : READ_KW ID (',' ID)* ;
+
+// 8. If Statements
+if_stmnt : IF_KW expr THEN_KW statement* else_if_block* else_block? END_IF_KW;
+
+else_if_block : ELSE_IF_KW expr THEN_KW statement* ;
+
+else_block : ELSE_KW statement* ;
 
 // Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
@@ -42,11 +50,20 @@ expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
 
 //Keywords
 PROGRAM_KW : 'ΠΡΟΓΡΑΜΜΑ' ;
+
 VARS_KW    : 'ΜΕΤΑΒΛΗΤΕΣ' ;
+
 START_KW   : 'ΑΡΧΗ' ;
 END_KW     : 'ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ' ;
+
 PRINT_KW   : 'ΓΡΑΨΕ' ;
 READ_KW    : 'ΔΙΑΒΑΣΕ' ;
+
+IF_KW      : 'ΑΝ' ;
+THEN_KW    : 'ΤΟΤΕ' ;
+ELSE_IF_KW : 'ΑΛΛΙΩΣ_ΑΝ' ;
+ELSE_KW    : 'ΑΛΛΙΩΣ' ;
+END_IF_KW  : 'ΤΕΛΟΣ_ΑΝ' ;
 
 //Data types
 TYPE_KW : 'ΑΚΕΡΑΙΕΣ:' | 'ΠΡΑΓΜΑΤΙΚΕΣ:' | 'ΛΟΓΙΚΕΣ:' | 'ΧΑΡΑΚΤΗΡΕΣ:' ;
