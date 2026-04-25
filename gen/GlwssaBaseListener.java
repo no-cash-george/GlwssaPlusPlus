@@ -100,6 +100,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterRead_stmnt(GlwssaParser.Read_stmntContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRead_stmnt(GlwssaParser.Read_stmntContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBoolExpr(GlwssaParser.BoolExprContext ctx) { }
 	/**
 	 * {@inheritDoc}

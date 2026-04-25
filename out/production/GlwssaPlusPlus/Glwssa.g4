@@ -13,7 +13,8 @@ var_decl : TYPE_KW ID (',' ID)* ;
 
 // 4. Statements: Supported : assignment, printing
 statement : assignment
-          | print_stmnt ;
+          | print_stmnt
+          | read_stmnt ;
 
 // 5. Assignment
 assignment : ID ASSIGN expr ;
@@ -23,7 +24,10 @@ print_stmnt : PRINT_KW print_item (',' print_item)* ;
 
 print_item : expr | STRING ;
 
-// 7. Expressions
+// 7. Read Statement
+read_stmnt : READ_KW ID (',' ID)* ;
+
+// Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | expr op=(PLUS | MINUS) expr                   # MathExpr
      | expr op=(EQ | NEQ | LT | GT | LTE | GTE) expr # RelationalExpr
@@ -42,6 +46,7 @@ VARS_KW    : 'ΜΕΤΑΒΛΗΤΕΣ' ;
 START_KW   : 'ΑΡΧΗ' ;
 END_KW     : 'ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ' ;
 PRINT_KW   : 'ΓΡΑΨΕ' ;
+READ_KW    : 'ΔΙΑΒΑΣΕ' ;
 
 //Data types
 TYPE_KW : 'ΑΚΕΡΑΙΕΣ:' | 'ΠΡΑΓΜΑΤΙΚΕΣ:' | 'ΛΟΓΙΚΕΣ:' | 'ΧΑΡΑΚΤΗΡΕΣ:' ;

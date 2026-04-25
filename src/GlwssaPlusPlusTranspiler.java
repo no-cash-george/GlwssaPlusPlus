@@ -1,8 +1,12 @@
-import javax.annotation.processing.SupportedOptions;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 {
+
+    private Map<String, String> symbolTable = new HashMap<>();
+
     @Override
     public String visitProgram(GlwssaParser.ProgramContext ctx)
     {
@@ -10,8 +14,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         StringBuilder translatedJavaCode = new StringBuilder();// inside here we will put the translated java code
 
+        translatedJavaCode.append("import java.util.Scanner;\n\n");//import scanner
+
         translatedJavaCode.append("public class " + programName + "{\n");
         translatedJavaCode.append("public static void main(String[] args) {\n");
+
+        translatedJavaCode.append("Scanner scanner = new Scanner(System.in);\n");
 
         if (ctx.declarations() != null)
         {
@@ -54,6 +62,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
             default -> "Object";
         };
+
+        for (org.antlr.v4.runtime.tree.TerminalNode node : ctx.ID()) // save the variable types of each one on the symbolTable
+        {
+            String varName = Utils.toGreeklish(node.getText());
+            symbolTable.put(varName, glwssa2JavaType);
+        }
 
         String variables = ctx.ID().stream()
                 .map(node -> Utils.toGreeklish(node.getText()))
@@ -156,4 +170,37 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     public String visitParenExpr(GlwssaParser.ParenExprContext ctx) {
         return "(" + visit(ctx.expr()) + ")";
     }
+
+    @Override
+    public String visitRead_stmnt(GlwssaParser.Read_stmntContext ctx)
+    {
+        StringBuilder readCode = new StringBuilder();
+
+        for (org.antlr.v4.runtime.tree.TerminalNode node : ctx.ID())// go through all the printed variables
+        {
+            String varName = Utils.toGreeklish(node.getText());
+
+            String javaType = symbolTable.get(varName);
+
+            if (javaType == null)
+            {
+                throw new RuntimeException("SEMANTIC ERROR: Variable '" + node.getText() + "' used in ΔΙΑΒΑΣΕ but was never declared in ΜΕΤΑΒΛΗΤΕΣ.");
+            }
+
+            String chosenScannerMethod = switch (javaType)
+            {
+                case "int" -> "nextInt()";
+                case "float" -> "nextFloat()";
+                case "boolean" -> "nextBoolean()";
+                case "String" -> "next()";
+                default -> "next()";
+            };
+
+            readCode.append(varName).append(" = scanner.").append(chosenScannerMethod).append(";\n");
+        }
+
+        return readCode.toString();
+    }
+
+
 }
