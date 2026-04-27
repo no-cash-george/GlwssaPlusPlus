@@ -147,6 +147,26 @@ public interface GlwssaListener extends ParseTreeListener {
 	 */
 	void exitDefault_block(GlwssaParser.Default_blockContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#while_stmnt}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhile_stmnt(GlwssaParser.While_stmntContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#while_stmnt}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhile_stmnt(GlwssaParser.While_stmntContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#do_while_stmnt}.
+	 * @param ctx the parse tree
+	 */
+	void enterDo_while_stmnt(GlwssaParser.Do_while_stmntContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#do_while_stmnt}.
+	 * @param ctx the parse tree
+	 */
+	void exitDo_while_stmnt(GlwssaParser.Do_while_stmntContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code BoolExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
 	 * @param ctx the parse tree

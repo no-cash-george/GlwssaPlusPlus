@@ -94,6 +94,18 @@ public interface GlwssaVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDefault_block(GlwssaParser.Default_blockContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#while_stmnt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhile_stmnt(GlwssaParser.While_stmntContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#do_while_stmnt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDo_while_stmnt(GlwssaParser.Do_while_stmntContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code BoolExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
 	 * @param ctx the parse tree

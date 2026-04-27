@@ -327,4 +327,42 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         return defaultCodeBlock.toString();
     }
+
+    @Override
+    public String visitWhile_stmnt ( GlwssaParser.While_stmntContext ctx )
+    {
+        StringBuilder whileCode = new StringBuilder();
+
+        String condition = visit(ctx.expr());
+
+        whileCode.append("while ( " + condition + " ) \n{ \n");
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        {
+            whileCode.append(visit(stmntCtx) + "\n");
+        }
+
+        whileCode.append("}\n");
+
+        return whileCode.toString();
+    }
+
+    @Override
+    public String visitDo_while_stmnt(GlwssaParser.Do_while_stmntContext ctx)
+    {
+        StringBuilder doWhileCode = new StringBuilder();
+
+        doWhileCode.append("do {");
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        {
+            doWhileCode.append(visit(stmntCtx) + "\n");
+        }
+
+        String condition = visit(ctx.expr());
+
+        doWhileCode.append("}while ( !( " + condition + ") );\n"); //java do while logic opposite to GLWSSA logic
+
+        return doWhileCode.toString();
+    }
 }

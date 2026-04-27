@@ -11,12 +11,14 @@ declarations : VARS_KW var_decl* ;
 // 3. A single declaration
 var_decl : TYPE_KW ID (',' ID)* ;
 
-// 4. Statements: Supported : assignment, printing, user input, if statements, switch statements
+// 4. Statements: Supported : assignment, printing, user input, if statements, switch statements, while statements
 statement : assignment
           | print_stmnt
           | read_stmnt
           | if_stmnt
-          | select_stmnt;
+          | select_stmnt
+          | while_stmnt
+          | do_while_stmnt;
 
 // 5. Assignment
 assignment : ID ASSIGN expr ;
@@ -42,6 +44,12 @@ select_stmnt : SELECT_KW expr case_block* default_block? END_SELECT_KW ;
 case_block : CASE_KW expr (',' expr)* statement* ;
 
 default_block : CASE_KW ELSE_KW statement* ;
+
+// 10. While Statements
+while_stmnt : WHILE_KW expr DO_KW statement* END_LOOP_KW ;
+
+// 11. Do While Statements
+do_while_stmnt : START_LOOP_KW statement* UNTIL_KW expr ;
 
 // Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
@@ -76,6 +84,13 @@ END_IF_KW  : 'ΤΕΛΟΣ_ΑΝ' ;
 SELECT_KW : 'ΕΠΙΛΕΞΕ' ;
 CASE_KW : 'ΠΕΡΙΠΤΩΣΗ' ;
 END_SELECT_KW : 'ΤΕΛΟΣ_ΕΠΙΛΟΓΩΝ' ;
+
+WHILE_KW : 'ΟΣΟ' ;
+DO_KW : 'ΕΠΑΝΑΛΑΒΕ' ;
+END_LOOP_KW : 'ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ' ;
+
+START_LOOP_KW : 'ΑΡΧΗ_ΕΠΑΝΑΛΗΨΗΣ' ;
+UNTIL_KW : 'ΜΕΧΡΙΣ_ΟΤΟΥ' ;
 
 //Data types
 TYPE_KW : 'ΑΚΕΡΑΙΕΣ:' | 'ΠΡΑΓΜΑΤΙΚΕΣ:' | 'ΛΟΓΙΚΕΣ:' | 'ΧΑΡΑΚΤΗΡΕΣ:' ;

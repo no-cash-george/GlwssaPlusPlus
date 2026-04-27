@@ -29,17 +29,43 @@
 
 **Είσοδος: `test.gl` (Κώδικας σε ΓΛΩΣΣΑ)**
 ```
-ΠΡΟΓΡΑΜΜΑ Ελεγχος_Ηλικίας
+ΠΡΟΓΡΑΜΜΑ test
 ΜΕΤΑΒΛΗΤΕΣ
-  ΑΚΕΡΑΙΕΣ: ηλικία
+    ΑΚΕΡΑΙΕΣ: α, β, γ, ν
 ΑΡΧΗ
-  ΓΡΑΨΕ "Δώσε την ηλικία σου:"
-  ΔΙΑΒΑΣΕ ηλικία
-  ΑΝ ηλικία >= 18 ΤΟΤΕ
-    ΓΡΑΨΕ "Είσαι ενήλικας!"
-  ΑΛΛΙΩΣ
-    ΓΡΑΨΕ "Είσαι ανήλικος."
-  ΤΕΛΟΣ_ΑΝ
+    ΔΙΑΒΑΣΕ α, β
+
+    ΓΡΑΨΕ "MAX : "
+    ΑΝ α > β ΤΟΤΕ
+        ΓΡΑΨΕ α
+    ΑΛΛΙΩΣ_ΑΝ α < β ΤΟΤΕ
+        ΓΡΑΨΕ β
+    ΑΛΛΙΩΣ
+        ΓΡΑΨΕ "ΙΣΑ"
+    ΤΕΛΟΣ_ΑΝ
+
+    ΕΠΙΛΕΞΕ α
+      ΠΕΡΙΠΤΩΣΗ 1, 2
+        ΓΡΑΨΕ "Μικρός"
+      ΠΕΡΙΠΤΩΣΗ 3
+        ΓΡΑΨΕ "Μεγάλος"
+      ΠΕΡΙΠΤΩΣΗ ΑΛΛΙΩΣ
+        ΓΡΑΨΕ "Άλλο"
+    ΤΕΛΟΣ_ΕΠΙΛΟΓΩΝ
+
+    ν <- 3
+
+    ΟΣΟ ν < 5 ΕΠΑΝΑΛΑΒΕ
+        ΓΡΑΨΕ ν
+        ν <- ν - 1
+    ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ
+
+    ν <- 3
+
+    ΑΡΧΗ_ΕΠΑΝΑΛΗΨΗΣ
+        ΓΡΑΨΕ ν
+        ν <- ν + 1
+    ΜΕΧΡΙΣ_ΟΤΟΥ ν > 5
 ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ
 ```
 
@@ -48,18 +74,47 @@
 ```
 import java.util.Scanner;
 
-public class Elegxos_Ilikias {
+public class test {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        int ilikia;
-        System.out.println("Δώσε την ηλικία σου:");
-        ilikia = scanner.nextInt();
-        if (ilikia >= 18) {
-            System.out.println("Είσαι ενήλικας!");
+        int a, v, g, n;
+        a = scanner.nextInt();
+        v = scanner.nextInt();
+
+        System.out.println("MAX : ");
+        if (a > v) {
+            System.out.println(a);
+        } else if (a < v) {
+            System.out.println(v);
+        } else {
+            System.out.println("ΙΣΑ");
         }
-        else {
-            System.out.println("Είσαι ανήλικος.");
+
+        switch (a) {
+            case 1:
+            case 2:
+                System.out.println("Μικρός");
+                break;
+            case 3:
+                System.out.println("Μεγάλος");
+                break;
+            default:
+                System.out.println("Άλλο");
+                break;
         }
+
+        n = 3;
+        while (n < 5) {
+            System.out.println(n);
+            n = n - 1;
+        }
+
+        n = 3;
+        do {
+            System.out.println(n);
+            n = n + 1;
+        } while (!(n > 5));
+
     }
 }
 ```
