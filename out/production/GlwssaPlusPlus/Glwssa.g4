@@ -11,11 +11,12 @@ declarations : VARS_KW var_decl* ;
 // 3. A single declaration
 var_decl : TYPE_KW ID (',' ID)* ;
 
-// 4. Statements: Supported : assignment, printing
+// 4. Statements: Supported : assignment, printing, user input, if statements, switch statements
 statement : assignment
           | print_stmnt
           | read_stmnt
-          | if_stmnt ;
+          | if_stmnt
+          | select_stmnt;
 
 // 5. Assignment
 assignment : ID ASSIGN expr ;
@@ -34,6 +35,13 @@ if_stmnt : IF_KW expr THEN_KW statement* else_if_block* else_block? END_IF_KW;
 else_if_block : ELSE_IF_KW expr THEN_KW statement* ;
 
 else_block : ELSE_KW statement* ;
+
+// 9. Select Staments (Switch in java)
+select_stmnt : SELECT_KW expr case_block* default_block? END_SELECT_KW ;
+
+case_block : CASE_KW expr (',' expr)* statement* ;
+
+default_block : CASE_KW ELSE_KW statement* ;
 
 // Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
@@ -64,6 +72,10 @@ THEN_KW    : 'ΤΟΤΕ' ;
 ELSE_IF_KW : 'ΑΛΛΙΩΣ_ΑΝ' ;
 ELSE_KW    : 'ΑΛΛΙΩΣ' ;
 END_IF_KW  : 'ΤΕΛΟΣ_ΑΝ' ;
+
+SELECT_KW : 'ΕΠΙΛΕΞΕ' ;
+CASE_KW : 'ΠΕΡΙΠΤΩΣΗ' ;
+END_SELECT_KW : 'ΤΕΛΟΣ_ΕΠΙΛΟΓΩΝ' ;
 
 //Data types
 TYPE_KW : 'ΑΚΕΡΑΙΕΣ:' | 'ΠΡΑΓΜΑΤΙΚΕΣ:' | 'ΛΟΓΙΚΕΣ:' | 'ΧΑΡΑΚΤΗΡΕΣ:' ;

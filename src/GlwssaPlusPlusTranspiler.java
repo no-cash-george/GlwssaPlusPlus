@@ -266,4 +266,65 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         return elseCode.toString();
     }
+
+    @Override
+    public String visitSelect_stmnt(GlwssaParser.Select_stmntContext ctx)
+    {
+        StringBuilder selectCode = new StringBuilder();
+
+        String switchExpr = visit(ctx.expr());
+
+        selectCode.append("switch ( " + switchExpr + " ) \n { \n");
+
+        for ( GlwssaParser.Case_blockContext caseCtx : ctx.case_block())
+        {
+            selectCode.append(visit(caseCtx));
+        }
+
+        if ( ctx.default_block() != null )
+        {
+            selectCode.append(visit(ctx.default_block()));
+        }
+
+        selectCode.append("} \n");
+
+        return selectCode.toString();
+    }
+
+    public String visitCase_block( GlwssaParser.Case_blockContext ctx )
+    {
+        StringBuilder caseBlockCode = new StringBuilder();
+
+        for ( GlwssaParser.ExprContext caseExprCtx : ctx.expr())
+        {
+            String caseValue = visit(caseExprCtx);
+
+            caseBlockCode.append("case " + caseValue + ":\n");
+        }
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement())
+        {
+            caseBlockCode.append(visit(stmntCtx) + "\n");
+        }
+
+        caseBlockCode.append("break;\n");
+
+        return caseBlockCode.toString();
+    }
+
+    @Override
+    public String visitDefault_block ( GlwssaParser.Default_blockContext ctx)
+    {
+        StringBuilder defaultCodeBlock = new StringBuilder();
+
+        defaultCodeBlock.append("default: \n");
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        {
+            defaultCodeBlock.append(visit(stmntCtx) + "\n");
+        }
+        defaultCodeBlock.append("break;");
+
+        return defaultCodeBlock.toString();
+    }
 }
