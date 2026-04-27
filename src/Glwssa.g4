@@ -11,7 +11,7 @@ declarations : VARS_KW var_decl* ;
 // 3. A single declaration
 var_decl : TYPE_KW ID (',' ID)* ;
 
-// 4. Statements: Supported : assignment, printing
+// 4. Statements: Supported : assignment, printing, userInput, if elif else statements
 statement : assignment
           | print_stmnt
           | read_stmnt
