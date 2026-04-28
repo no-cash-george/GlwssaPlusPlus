@@ -18,7 +18,8 @@ statement : assignment
           | if_stmnt
           | select_stmnt
           | while_stmnt
-          | do_while_stmnt;
+          | do_while_stmnt
+          | for_loop_stmnt;
 
 // 5. Assignment
 assignment : ID ASSIGN expr ;
@@ -50,6 +51,9 @@ while_stmnt : WHILE_KW expr DO_KW statement* END_LOOP_KW ;
 
 // 11. Do While Statements
 do_while_stmnt : START_LOOP_KW statement* UNTIL_KW expr ;
+
+// 12. For Loop Statements
+for_loop_stmnt : START_FOR_KW ID FROM_KW expr TO_KW expr (STEP_KW expr)? statement* END_LOOP_KW;
 
 // Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
@@ -91,6 +95,12 @@ END_LOOP_KW : 'ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ' ;
 
 START_LOOP_KW : 'ΑΡΧΗ_ΕΠΑΝΑΛΗΨΗΣ' ;
 UNTIL_KW : 'ΜΕΧΡΙΣ_ΟΤΟΥ' ;
+
+START_FOR_KW : 'ΓΙΑ' ;
+FROM_KW : 'ΑΠΟ' ;
+TO_KW : 'ΜΕΧΡΙ' ;
+STEP_KW : 'ΜΕ_ΒΗΜΑ' ;
+
 
 //Data types
 TYPE_KW : 'ΑΚΕΡΑΙΕΣ:' | 'ΠΡΑΓΜΑΤΙΚΕΣ:' | 'ΛΟΓΙΚΕΣ:' | 'ΧΑΡΑΚΤΗΡΕΣ:' ;

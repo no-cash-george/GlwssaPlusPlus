@@ -365,4 +365,51 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         return doWhileCode.toString();
     }
+
+    @Override
+    public String visitFor_loop_stmnt ( GlwssaParser.For_loop_stmntContext ctx )
+    {
+        StringBuilder forCode = new StringBuilder();
+
+        String iter = Utils.toGreeklish(ctx.ID().getText());
+        String start = visit(ctx.expr(0));
+        String end = visit(ctx.expr(1));
+        String step = (ctx.expr().size() == 3) ? visit(ctx.expr(2)) : "1";
+
+        try {
+            float stepFloat = Float.parseFloat(step);
+
+            forCode.append("for ( " + iter + " = " + start + "; ");
+
+            if (stepFloat < 0) {
+                forCode.append(iter + " >= " + end + "; " + iter + " += " + step + " ) \n {\n");
+            } else {
+                forCode.append(iter + " <= " + end + "; " + iter + " += " + step + " ) \n {\n");
+            }
+
+            for (GlwssaParser.StatementContext stmntCtx : ctx.statement()) {
+                forCode.append(visit(stmntCtx) + "; \n");
+            }
+
+            forCode.append("\n}");
+        } catch (NumberFormatException e) // step not a number
+        {
+            StringBuilder bodyCode = new StringBuilder();
+            for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() ) {
+                bodyCode.append("        ").append(visit(stmntCtx)).append("; \n");
+            }
+
+            forCode.append("if ( (").append(step).append(") >= 0 ) \n{ \n");
+            forCode.append("for ( " + iter + " = " + start + "; " + iter + " <= " + end + "; " + iter + " += " + step + " ) \n{ \n");
+            forCode.append(bodyCode);
+            forCode.append("}\n");
+            forCode.append("} else \n{ \n");
+            forCode.append("for ( " + iter + " = " + start + "; " + iter + " >= " + end + "; " + iter + " += " + step + " ) \n{ \n");
+            forCode.append(bodyCode);
+            forCode.append("}\n");
+            forCode.append("}\n");
+        }
+
+        return forCode.toString();
+    }
 }
