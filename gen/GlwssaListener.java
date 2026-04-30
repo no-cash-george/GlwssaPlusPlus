@@ -177,6 +177,16 @@ public interface GlwssaListener extends ParseTreeListener {
 	 */
 	void exitFor_loop_stmnt(GlwssaParser.For_loop_stmntContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#array_access}.
+	 * @param ctx the parse tree
+	 */
+	void enterArray_access(GlwssaParser.Array_accessContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#array_access}.
+	 * @param ctx the parse tree
+	 */
+	void exitArray_access(GlwssaParser.Array_accessContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code BoolExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
 	 * @param ctx the parse tree
@@ -188,6 +198,18 @@ public interface GlwssaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBoolExpr(GlwssaParser.BoolExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ArrayExpr}
+	 * labeled alternative in {@link GlwssaParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterArrayExpr(GlwssaParser.ArrayExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ArrayExpr}
+	 * labeled alternative in {@link GlwssaParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitArrayExpr(GlwssaParser.ArrayExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code IdExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.

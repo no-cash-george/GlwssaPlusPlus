@@ -220,6 +220,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterArray_access(GlwssaParser.Array_accessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArray_access(GlwssaParser.Array_accessContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBoolExpr(GlwssaParser.BoolExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -227,6 +239,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBoolExpr(GlwssaParser.BoolExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterArrayExpr(GlwssaParser.ArrayExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitArrayExpr(GlwssaParser.ArrayExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

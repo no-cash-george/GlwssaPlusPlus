@@ -22,7 +22,7 @@ statement : assignment
           | for_loop_stmnt;
 
 // 5. Assignment
-assignment : ID ASSIGN expr ;
+assignment : ( ID | array_access ) ASSIGN expr ;
 
 // 6. Print Statement
 print_stmnt : PRINT_KW print_item (',' print_item)* ;
@@ -30,7 +30,7 @@ print_stmnt : PRINT_KW print_item (',' print_item)* ;
 print_item : expr | STRING ;
 
 // 7. Read Statement
-read_stmnt : READ_KW ID (',' ID)* ;
+read_stmnt : READ_KW ( ID | array_access ) (',' ( ID | array_access ) )* ;
 
 // 8. If Statements
 if_stmnt : IF_KW expr THEN_KW statement* else_if_block* else_block? END_IF_KW;
@@ -55,6 +55,9 @@ do_while_stmnt : START_LOOP_KW statement* UNTIL_KW expr ;
 // 12. For Loop Statements
 for_loop_stmnt : START_FOR_KW ID FROM_KW expr TO_KW expr (STEP_KW expr)? statement* END_LOOP_KW;
 
+// 13. Arrays
+array_access : ID '[' expr (',' expr)* ']';
+
 // Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | expr op=(PLUS | MINUS) expr                   # MathExpr
@@ -64,6 +67,7 @@ expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | TRUE_KW                                       # BoolExpr
      | FALSE_KW                                      # BoolExpr
      | '(' expr ')'                                  # ParenExpr
+     | array_access                                  # ArrayExpr
      ;
 
 // Vocabulary
@@ -125,7 +129,7 @@ LTE        : '<=' ;
 GTE        : '>=' ;
 
 // Program/Variable naming rules
-ID : [a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9_]* ;
+ID : [a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9_]*;
 
 // Numbers
 NUMBER : [0-9]+ ('.' [0-9]+)? ;
@@ -138,3 +142,7 @@ COMMENT : '!' ~[\r\n]* -> skip ;
 
 // Ignore White Space
 WS : [ \t\r\n]+ -> skip ;
+
+// Brackets
+LEFT_BRACKET : '[' ;
+RIGHT_BRACKET : ']' ;

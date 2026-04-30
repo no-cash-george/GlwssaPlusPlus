@@ -45,6 +45,8 @@ NUMBER=44
 STRING=45
 COMMENT=46
 WS=47
+LEFT_BRACKET=48
+RIGHT_BRACKET=49
 ','=1
 '('=2
 ')'=3
@@ -86,3 +88,5 @@ WS=47
 '>'=40
 '<='=41
 '>='=42
+'['=48
+']'=49

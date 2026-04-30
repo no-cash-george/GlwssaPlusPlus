@@ -79,10 +79,19 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     @Override
     public String visitAssignment(GlwssaParser.AssignmentContext ctx)
     {
-        String varName = Utils.toGreeklish(ctx.ID().getText());
-        String expression = visit(ctx.expr());
+        String target;
 
-        return varName + " = " + expression + " ;";
+        // Check assignment target
+        if ( ctx.ID() != null )
+        {
+            target = ctx.ID().getText();
+        }else // if ID is null then the target is an array
+        {
+            target = visit(ctx.array_access());
+        }
+
+        String expression = visit(ctx.expr());
+        return target + " = " + expression + " ;";
     }
 
     @Override
@@ -411,5 +420,29 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         }
 
         return forCode.toString();
+    }
+
+    @Override
+    public String visitArrayExpr(GlwssaParser.ArrayExprContext ctx)
+    {
+        return visit(ctx.array_access());
+    }
+
+    @Override
+    public String visitArray_access(GlwssaParser.Array_accessContext ctx)
+    {
+        StringBuilder arrayAccessCode = new StringBuilder();
+
+        String arrayName = ctx.ID().getText();
+        arrayAccessCode.append(arrayName);
+
+        for ( GlwssaParser.ExprContext exprContext : ctx.expr() )
+        {
+            String indexName = visit( exprContext );
+
+            arrayAccessCode.append("[( " + indexName + " ) - 1 ]");
+        }
+
+        return arrayAccessCode.toString();
     }
 }

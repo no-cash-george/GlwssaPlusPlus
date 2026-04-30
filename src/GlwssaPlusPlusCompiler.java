@@ -57,7 +57,6 @@ public class GlwssaPlusPlusCompiler
                 new java.util.ArrayList<>(java.util.List.of(javaOutput.split("\n"))),
                 programName + ".java"
         );
-
         System.out.println("Compilation Successful. Generated " + programName + ".java");
     }
 }

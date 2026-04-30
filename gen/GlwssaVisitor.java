@@ -112,12 +112,25 @@ public interface GlwssaVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFor_loop_stmnt(GlwssaParser.For_loop_stmntContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#array_access}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArray_access(GlwssaParser.Array_accessContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code BoolExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBoolExpr(GlwssaParser.BoolExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code ArrayExpr}
+	 * labeled alternative in {@link GlwssaParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArrayExpr(GlwssaParser.ArrayExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code IdExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
