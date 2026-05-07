@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
@@ -6,35 +7,57 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 {
 
     private Map<String, String> symbolTable = new HashMap<>();
+    private Map<String, String> symbolTableSubroutines = new HashMap<>();
+    private boolean inSubprogram = false;
 
     @Override
     public String visitProgram(GlwssaParser.ProgramContext ctx)
     {
         String programName = Utils.toGreeklish(ctx.ID().getText()); // get program name and translate to english
 
-        StringBuilder translatedJavaCode = new StringBuilder();// inside here we will put the translated java code
+        StringBuilder mainCode = new StringBuilder();// inside here we will put the translated java code
 
-        translatedJavaCode.append("import java.util.Scanner;\n\n");//import scanner
-
-        translatedJavaCode.append("public class " + programName + "{\n");
-        translatedJavaCode.append("public static void main(String[] args) {\n");
-
-        translatedJavaCode.append("Scanner scanner = new Scanner(System.in);\n");
+        mainCode.append("public static void main (String[] args) \n{\n");
 
         if (ctx.declarations() != null)
         {
-            translatedJavaCode.append(visit(ctx.declarations()));
+            mainCode.append(visit(ctx.declarations()));
         }
 
         for ( GlwssaParser.StatementContext stmtCtx : ctx.statement() )
         {
-            translatedJavaCode.append(visit(stmtCtx) + "\n");
+            mainCode.append(visit(stmtCtx) + "\n");
         }
 
-        translatedJavaCode.append("}\n");
-        translatedJavaCode.append("}\n");
+        mainCode.append("}\n");
 
-        return translatedJavaCode.toString();
+        return mainCode.toString();
+    }
+
+    @Override
+    public String visitFile ( GlwssaParser.FileContext ctx )
+    {
+        String programName = Utils.toGreeklish(ctx.program().ID().getText());
+
+        StringBuilder fileCode = new StringBuilder();
+
+        fileCode.append( "import java.util.Scanner;\n\n" +
+                            "public class " + programName + "\n{\n\n" +
+                            "static Scanner scanner = new Scanner(System.in);\n\n");
+        fileCode.append(visit(ctx.program()));
+
+        for ( GlwssaParser.SubprogramContext subPrCtx : ctx.subprogram() )
+        {
+            fileCode.append(visit(subPrCtx));
+        }
+
+        fileCode.append("\n}\n" +
+                "class RefInt { public int value; public RefInt(int v) { this.value = v; } }\n" +
+                "class RefFloat { public float value; public RefFloat(float v) { this.value = v; } }\n" +
+                "class RefBoolean { public boolean value; public RefBoolean(boolean v) { this.value = v; } }\n" +
+                "class RefString { public String value; public RefString(String v) { this.value = v; } }");
+
+        return fileCode.toString();
     }
 
     @Override
@@ -66,11 +89,18 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         for (org.antlr.v4.runtime.tree.TerminalNode node : ctx.ID()) // save the variable types of each one on the symbolTable
         {
             String varName = Utils.toGreeklish(node.getText());
-            symbolTable.put(varName, glwssa2JavaType);
+            if (inSubprogram)
+            {
+                symbolTableSubroutines.put(varName, glwssa2JavaType);
+            }else
+            {
+                symbolTable.put(varName, glwssa2JavaType);
+            }
         }
 
+        String defaulValue = Utils.getDefaultValue(glwssa2JavaType);
         String variables = ctx.ID().stream()
-                .map(node -> Utils.toGreeklish(node.getText()))
+                .map(node -> Utils.toGreeklish(node.getText()) + " = " + defaulValue)
                 .collect(Collectors.joining(", "));
 
         return glwssa2JavaType + " " + variables + ";\n";
@@ -84,7 +114,16 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         // Check assignment target
         if ( ctx.ID() != null )
         {
-            target = ctx.ID().getText();
+            String varName = Utils.toGreeklish(ctx.ID().getText());
+            String type = resolveVariableType(varName);
+
+            if ( type != null && type.startsWith("Ref") )
+            {
+                target = varName + ".value";
+            }else
+            {
+                target = varName;
+            }
         }else // if ID is null then the target is an array
         {
             target = visit(ctx.array_access());
@@ -166,6 +205,14 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     @Override
     public String visitIdExpr(GlwssaParser.IdExprContext ctx)
     {
+        String varName = Utils.toGreeklish(ctx.ID().getText());
+        String type = resolveVariableType(varName);
+
+        if ( type != null && type.startsWith("Ref") )
+        {
+            return varName + ".value";
+        }
+
         return Utils.toGreeklish(ctx.ID().getText());
     }
 
@@ -189,11 +236,27 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         {
             String varName = Utils.toGreeklish(node.getText());
 
-            String javaType = symbolTable.get(varName);
+            String javaType = resolveVariableType(varName);
 
             if (javaType == null)
             {
                 throw new RuntimeException("SEMANTIC ERROR: Variable '" + node.getText() + "' used in ΔΙΑΒΑΣΕ but was never declared in ΜΕΤΑΒΛΗΤΕΣ.");
+            }
+
+            String target = varName;
+            String baseType = javaType;
+
+            if (javaType.startsWith("Ref"))
+            {
+                target = varName + ".value";
+                baseType = switch (javaType)
+                {
+                    case "RefInt" -> "int";
+                    case "RefFloat" -> "float";
+                    case "RefBoolean" -> "boolean";
+                    case "RefString" -> "String";
+                    default -> "String";
+                };
             }
 
             String chosenScannerMethod = switch (javaType)
@@ -381,6 +444,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder forCode = new StringBuilder();
 
         String iter = Utils.toGreeklish(ctx.ID().getText());
+        String iterType = resolveVariableType(iter);
+        if (iterType != null && iterType.startsWith("Ref"))
+        {
+            iter += ".value";
+        }
+
         String start = visit(ctx.expr(0));
         String end = visit(ctx.expr(1));
         String step = (ctx.expr().size() == 3) ? visit(ctx.expr(2)) : "1";
@@ -433,7 +502,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     {
         StringBuilder arrayAccessCode = new StringBuilder();
 
-        String arrayName = ctx.ID().getText();
+        String arrayName = Utils.toGreeklish(ctx.ID().getText());
         arrayAccessCode.append(arrayName);
 
         for ( GlwssaParser.ExprContext exprContext : ctx.expr() )
@@ -444,5 +513,287 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         }
 
         return arrayAccessCode.toString();
+    }
+
+    @Override
+    public String visitFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx)
+    {
+        StringBuilder functionCallCode = new StringBuilder();
+
+        String functionName = Utils.toGreeklish(ctx.ID().getText());
+        functionCallCode.append(functionName + "( ");
+
+        if ( ctx.expr() != null && !ctx.expr().isEmpty() )
+        {
+            for ( int i = 0; i < ctx.expr().size(); i++ )
+            {
+               functionCallCode.append(visit(ctx.expr(i)));
+
+               if ( i < ctx.expr().size() - 1 )
+               {
+                   functionCallCode.append(", ");
+               }
+            }
+        }
+        functionCallCode.append(" )");
+
+        return functionCallCode.toString();
+    }
+
+    @Override
+    public String visitFunction ( GlwssaParser.FunctionContext ctx )
+    {
+        inSubprogram = true;
+        symbolTableSubroutines.clear();
+
+        StringBuilder functionCode = new StringBuilder();
+
+        String functionName = Utils.toGreeklish(ctx.ID().getText());
+        String glwssaReturnType = ctx.RETURN_TYPE_KW().getText();
+
+        String javaReturnType = switch (glwssaReturnType)
+        {
+            case "ΑΚΕΡΑΙΑ" -> "int";
+            case "ΠΡΑΓΜΑΤΙΚΗ" -> "float";
+            case "ΛΟΓΙΚΗ" -> "boolean";
+            case "ΧΑΡΑΚΤΗΡΑΣ" -> "String";
+            default -> "Object";
+        };
+
+        Map<String, String> localVarTypes = new HashMap<>();
+        if ( ctx.declarations() != null )
+        {
+            for ( GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            {
+                String typeKW = varCtx.TYPE_KW().getText();
+                String javaType = switch ( typeKW )
+                {
+                    case "ΑΚΕΡΑΙΕΣ:" -> "int";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΛΟΓΙΚΕΣ:" -> "boolean";
+                    case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
+                    default -> "Object";
+                };
+
+                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                {
+                    localVarTypes.put(Utils.toGreeklish(idNode.getText()), javaType);
+                }
+            }
+        }
+
+        StringBuilder parametersCode = new StringBuilder();
+        java.util.List<String> paramNames = new ArrayList<>();
+
+        if ( ctx.param_list() != null )
+        {
+            java.util.List<org.antlr.v4.runtime.tree.TerminalNode> paramIdNodes = ctx.param_list().ID();
+            for ( int i = 0; i < paramIdNodes.size(); i++)
+            {
+                String paramName = Utils.toGreeklish(paramIdNodes.get(i).getText());
+                paramNames.add(paramName);
+
+                String paramType = localVarTypes.getOrDefault(paramName, "int");
+                parametersCode.append(paramType + " " + paramName);
+                if (i < paramIdNodes.size() - 1)
+                    parametersCode.append(", ");
+            }
+        }
+
+        functionCode.append("public static " + javaReturnType + " " + functionName + "( " + parametersCode + ") \n{\n");
+        functionCode.append(javaReturnType + " " + functionName + " = " + Utils.getDefaultValue(javaReturnType) + ";\n");
+
+        if ( ctx.declarations() != null )
+        {
+            for ( GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            {
+                String typeKW = varCtx.TYPE_KW().getText();
+                String javaType = switch (typeKW)
+                {
+                    case "ΑΚΕΡΑΙΕΣ:" -> "int";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΛΟΓΙΚΕΣ:" -> "boolean";
+                    case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
+                    default -> "Object";
+                };
+
+                java.util.List<String> validLocalVariables = new ArrayList<>();
+
+                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                {
+                    String varName = Utils.toGreeklish(idNode.getText());
+                    if ( !paramNames.contains(varName) )
+                    {
+                        validLocalVariables.add(varName);
+                        symbolTableSubroutines.put(varName, javaType);
+                    }
+                }
+
+                if ( !validLocalVariables.isEmpty() )
+                {
+                    functionCode.append(javaType + " " + String.join(", ", validLocalVariables) + "; \n");
+                }
+
+            }
+        }
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        {
+            functionCode.append(visit(stmntCtx) + "\n");
+        }
+
+        functionCode.append("return " + functionName + ";\n");
+        functionCode.append("\n}\n");
+
+        inSubprogram = false;
+        return functionCode.toString();
+    }
+
+    //todo
+    @Override
+    public String visitProcedure ( GlwssaParser.ProcedureContext ctx )
+    {
+        inSubprogram = true;
+        symbolTableSubroutines.clear();
+
+        StringBuilder procedureCode = new StringBuilder();
+        String procedureName = Utils.toGreeklish(ctx.ID().getText());
+
+        Map<String, String> declaredTypes = new HashMap<>();
+
+        if ( ctx.declarations() != null )
+        {
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            {
+                String typeKW = varCtx.TYPE_KW().getText();
+                String javaType = switch ( typeKW )
+                {
+                    case "ΑΚΕΡΑΙΕΣ:" -> "int";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΛΟΓΙΚΕΣ:" -> "boolean";
+                    case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
+                    default -> "Object";
+                };
+
+                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                {
+                    declaredTypes.put(Utils.toGreeklish(idNode.getText()), javaType);
+                }
+            }
+        }
+
+        StringBuilder parametersCode = new StringBuilder();
+        java.util.List<String> paramNames = new ArrayList<>();
+
+        if ( ctx.param_list() != null )
+        {
+            java.util.List<org.antlr.v4.runtime.tree.TerminalNode> parameterNodes = ctx.param_list().ID();
+
+            for ( int i = 0; i < parameterNodes.size(); i++ )
+            {
+                String parameterName = Utils.toGreeklish(parameterNodes.get(i).getText());
+                paramNames.add(parameterName);
+
+                String baseType = declaredTypes.getOrDefault(parameterName, "int");
+                String wrapperType = getWrapperType(baseType);
+
+                symbolTableSubroutines.put(parameterName, wrapperType);
+
+                parametersCode.append(wrapperType + " " + parameterName);
+
+                if (i < parameterNodes.size() - 1)
+                    parametersCode.append(", ");
+            }
+        }
+
+        procedureCode.append("public static void " + procedureName + "( " + parametersCode + " )\n{\n");
+
+        if ( ctx.declarations() != null )
+        {
+            for ( GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            {
+                String typeKW = varCtx.TYPE_KW().getText();
+                String javaType = switch ( typeKW )
+                {
+                    case "ΑΚΕΡΑΙΕΣ:" -> "int";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΛΟΓΙΚΕΣ:" -> "boolean";
+                    case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
+                    default -> "Object";
+                };
+
+                java.util.List<String> validLocals = new ArrayList<>();
+
+                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                {
+                    String variableName = Utils.toGreeklish(idNode.getText());
+                    if ( !paramNames.contains(variableName) )
+                    {
+                        validLocals.add(variableName);
+                        symbolTableSubroutines.put(variableName, javaType);
+                    }
+                }
+
+                if ( !validLocals.isEmpty() )
+                {
+                    procedureCode.append(javaType + " " + String.join(", ", validLocals) + ";\n");
+                }
+            }
+        }
+
+        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        {
+            procedureCode.append(visit(stmntCtx) + "\n");
+        }
+
+        procedureCode.append("}\n\n");
+
+        inSubprogram = false;
+        return procedureCode.toString();
+    }
+
+    @Override
+    public String visitProcedure_call_statement( GlwssaParser.Procedure_call_statementContext ctx )
+    {
+        StringBuilder callCode = new StringBuilder();
+        String procName = Utils.toGreeklish(ctx.ID().getText());
+
+        callCode.append(procName).append("(");
+
+        if (ctx.expr() != null && !ctx.expr().isEmpty())
+        {
+            for (int i = 0; i < ctx.expr().size(); i++)
+            {
+                callCode.append(visit(ctx.expr(i)));
+                if (i < ctx.expr().size() - 1)
+                {
+                    callCode.append(", ");
+                }
+            }
+        }
+        callCode.append(");");
+
+        return callCode.toString();
+    }
+
+    private String resolveVariableType ( String varName )
+    {
+        if( !inSubprogram && symbolTableSubroutines.containsKey(varName) )
+        {
+            return symbolTableSubroutines.get(varName);
+        }
+
+        return symbolTable.get(varName);
+    }
+
+    private String getWrapperType(String javaType)
+    {
+        return switch (javaType) {
+            case "int" -> "RefInt";
+            case "float" -> "RefFloat";
+            case "boolean" -> "RefBoolean";
+            case "String" -> "RefString";
+            default -> "RefObject";
+        };
     }
 }

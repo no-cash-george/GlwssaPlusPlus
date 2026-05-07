@@ -36,7 +36,7 @@ public class GlwssaPlusPlusCompiler
 
         // 2. Read Tokens and build the Abstract Syntax Tree (AST)
         GlwssaParser parser = new GlwssaParser(tokens);
-        org.antlr.v4.runtime.tree.ParseTree tree = parser.program(); // Start parsing at the 'program' rule
+        org.antlr.v4.runtime.tree.ParseTree tree = parser.file(); // Start parsing at the 'program' rule
 
         // If the Lexer or Parser found bad syntax, stop BEFORE transpiling
         if (parser.getNumberOfSyntaxErrors() > 0) {
@@ -50,8 +50,8 @@ public class GlwssaPlusPlusCompiler
         String javaOutput = transpiler.visit(tree);
 
         // 4. Output the result
-        GlwssaParser.ProgramContext programTree = (GlwssaParser.ProgramContext) tree;
-        String programName = Utils.toGreeklish(programTree.ID().getText());
+        GlwssaParser.FileContext fileTree = (GlwssaParser.FileContext) tree;
+        String programName = Utils.toGreeklish(fileTree.program().ID().getText());
 
         Utils.writeArrayListToFile(
                 new java.util.ArrayList<>(java.util.List.of(javaOutput.split("\n"))),

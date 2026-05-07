@@ -1,9 +1,30 @@
 grammar Glwssa;
+// 0. Main program followed by n optional subprograms
+file : program subprogram* EOF ;
 
 // Glwssa Parser Rules
 
 // 1. The program must have a name variables a start statements and an end
 program : PROGRAM_KW ID declarations START_KW statement* END_KW ;
+
+// 1.1 Procedures and Functions
+subprogram : function | procedure ;
+
+// 1.1.1 Function has both input and output
+function : FUNCTION_KW ID '(' param_list? ')' ':' RETURN_TYPE_KW
+            declarations
+            START_KW
+                statement*
+            END_FUNCTION_KW ;
+
+// 1.1.2 Procedure has only input ( pass by referance )
+procedure : PROCEDURE_KW ID '(' param_list? ')'
+            declarations
+            START_KW
+                statement*
+            END_PROCEDURE_KW ;
+
+param_list : ID (',' ID)* ;
 
 // 2. Variable Declaration Block: Starts with "ΜΕΤΑΒΛΗΤΕΣ" followed by >=0 declarations
 declarations : VARS_KW var_decl* ;
@@ -19,7 +40,8 @@ statement : assignment
           | select_stmnt
           | while_stmnt
           | do_while_stmnt
-          | for_loop_stmnt;
+          | for_loop_stmnt
+          | procedure_call_statement;
 
 // 5. Assignment
 assignment : ( ID | array_access ) ASSIGN expr ;
@@ -58,10 +80,14 @@ for_loop_stmnt : START_FOR_KW ID FROM_KW expr TO_KW expr (STEP_KW expr)? stateme
 // 13. Arrays
 array_access : ID '[' expr (',' expr)* ']';
 
+// 14. Calling Procedures
+procedure_call_statement : CALL_KW ID '(' (expr (',' expr)*)? ')' ;
+
 // Expressions
 expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | expr op=(PLUS | MINUS) expr                   # MathExpr
      | expr op=(EQ | NEQ | LT | GT | LTE | GTE) expr # RelationalExpr
+     | ID '(' (expr (',' expr)*)? ')'                # FunctionCallExpr
      | NUMBER                                        # NumberExpr
      | ID                                            # IdExpr
      | TRUE_KW                                       # BoolExpr
@@ -105,9 +131,16 @@ FROM_KW : 'ΑΠΟ' ;
 TO_KW : 'ΜΕΧΡΙ' ;
 STEP_KW : 'ΜΕ_ΒΗΜΑ' ;
 
+FUNCTION_KW : 'ΣΥΝΑΡΤΗΣΗ' ;
+END_FUNCTION_KW : 'ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ' ;
+PROCEDURE_KW : 'ΔΙΑΔΙΚΑΣΙΑ' ;
+END_PROCEDURE_KW : 'ΤΕΛΟΣ_ΔΙΑΔΙΚΑΣΙΑΣ' ;
+
+CALL_KW : 'ΚΑΛΕΣΕ' ;
 
 //Data types
 TYPE_KW : 'ΑΚΕΡΑΙΕΣ:' | 'ΠΡΑΓΜΑΤΙΚΕΣ:' | 'ΛΟΓΙΚΕΣ:' | 'ΧΑΡΑΚΤΗΡΕΣ:' ;
+RETURN_TYPE_KW : 'ΑΚΕΡΑΙΑ' | 'ΠΡΑΓΜΑΤΙΚΗ' | 'ΛΟΓΙΚΗ' | 'ΧΑΡΑΚΤΗΡΑΣ' ;
 
 //Boolean Constants
 TRUE_KW    : 'ΑΛΗΘΗΣ' ;

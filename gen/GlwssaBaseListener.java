@@ -16,6 +16,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterFile(GlwssaParser.FileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFile(GlwssaParser.FileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterProgram(GlwssaParser.ProgramContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -23,6 +35,54 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitProgram(GlwssaParser.ProgramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSubprogram(GlwssaParser.SubprogramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSubprogram(GlwssaParser.SubprogramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunction(GlwssaParser.FunctionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunction(GlwssaParser.FunctionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterProcedure(GlwssaParser.ProcedureContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitProcedure(GlwssaParser.ProcedureContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterParam_list(GlwssaParser.Param_listContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitParam_list(GlwssaParser.Param_listContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -232,6 +292,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterProcedure_call_statement(GlwssaParser.Procedure_call_statementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitProcedure_call_statement(GlwssaParser.Procedure_call_statementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBoolExpr(GlwssaParser.BoolExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -251,6 +323,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitArrayExpr(GlwssaParser.ArrayExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

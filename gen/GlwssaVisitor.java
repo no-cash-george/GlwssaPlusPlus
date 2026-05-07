@@ -10,11 +10,41 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface GlwssaVisitor<T> extends ParseTreeVisitor<T> {
 	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#file}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFile(GlwssaParser.FileContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link GlwssaParser#program}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitProgram(GlwssaParser.ProgramContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#subprogram}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSubprogram(GlwssaParser.SubprogramContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#function}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunction(GlwssaParser.FunctionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#procedure}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProcedure(GlwssaParser.ProcedureContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#param_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParam_list(GlwssaParser.Param_listContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link GlwssaParser#declarations}.
 	 * @param ctx the parse tree
@@ -118,6 +148,12 @@ public interface GlwssaVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitArray_access(GlwssaParser.Array_accessContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#procedure_call_statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProcedure_call_statement(GlwssaParser.Procedure_call_statementContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code BoolExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
 	 * @param ctx the parse tree
@@ -131,6 +167,13 @@ public interface GlwssaVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArrayExpr(GlwssaParser.ArrayExprContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code FunctionCallExpr}
+	 * labeled alternative in {@link GlwssaParser#expr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code IdExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.

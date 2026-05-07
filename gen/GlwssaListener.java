@@ -7,6 +7,16 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface GlwssaListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#file}.
+	 * @param ctx the parse tree
+	 */
+	void enterFile(GlwssaParser.FileContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#file}.
+	 * @param ctx the parse tree
+	 */
+	void exitFile(GlwssaParser.FileContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GlwssaParser#program}.
 	 * @param ctx the parse tree
 	 */
@@ -16,6 +26,46 @@ public interface GlwssaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitProgram(GlwssaParser.ProgramContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#subprogram}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubprogram(GlwssaParser.SubprogramContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#subprogram}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubprogram(GlwssaParser.SubprogramContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#function}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunction(GlwssaParser.FunctionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#function}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunction(GlwssaParser.FunctionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#procedure}.
+	 * @param ctx the parse tree
+	 */
+	void enterProcedure(GlwssaParser.ProcedureContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#procedure}.
+	 * @param ctx the parse tree
+	 */
+	void exitProcedure(GlwssaParser.ProcedureContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#param_list}.
+	 * @param ctx the parse tree
+	 */
+	void enterParam_list(GlwssaParser.Param_listContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#param_list}.
+	 * @param ctx the parse tree
+	 */
+	void exitParam_list(GlwssaParser.Param_listContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GlwssaParser#declarations}.
 	 * @param ctx the parse tree
@@ -187,6 +237,16 @@ public interface GlwssaListener extends ParseTreeListener {
 	 */
 	void exitArray_access(GlwssaParser.Array_accessContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#procedure_call_statement}.
+	 * @param ctx the parse tree
+	 */
+	void enterProcedure_call_statement(GlwssaParser.Procedure_call_statementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#procedure_call_statement}.
+	 * @param ctx the parse tree
+	 */
+	void exitProcedure_call_statement(GlwssaParser.Procedure_call_statementContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code BoolExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.
 	 * @param ctx the parse tree
@@ -210,6 +270,18 @@ public interface GlwssaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitArrayExpr(GlwssaParser.ArrayExprContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code FunctionCallExpr}
+	 * labeled alternative in {@link GlwssaParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FunctionCallExpr}
+	 * labeled alternative in {@link GlwssaParser#expr}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code IdExpr}
 	 * labeled alternative in {@link GlwssaParser#expr}.

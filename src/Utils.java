@@ -11,6 +11,16 @@ public class Utils
         LOGIKOS,
         XARAKTHRAS};
 
+    public static String getDefaultValue(String javaType) {
+        return switch (javaType) {
+            case "int" -> "0";
+            case "float" -> "0.0f";
+            case "boolean" -> "false";
+            case "String" -> "\"\"";
+            default -> "null";
+        };
+    }
+
     public static String toGreeklish(String greekText)
     {
         String[][] map = {
