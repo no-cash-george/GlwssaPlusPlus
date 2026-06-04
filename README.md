@@ -6,6 +6,8 @@
 
 [Εγχειρίδιο Γλώσσας](https://alkisg.mysch.gr/ΓΛΩΣΣΑ/)
 
+# BUILD AND BUILD TUTORIAL COMMING SOON!!!!
+
 ## 🏗️ Αρχιτεκτονική του Compiler
 
 Αντί για εύθραυστα regular expressions ή string splitting, ο compiler ακολουθεί ένα αυστηρό pipeline:
@@ -158,6 +160,6 @@ Compilation Successful. Generated ProgramName.java
 *	[x] Δομές Επανάληψης (ΟΣΟ...ΕΠΑΝΑΛΑΒΕ, ΓΙΑ...ΑΠΟ...ΜΕΧΡΙ)
 *	[x] Πίνακες (Arrays 1D / 2D ...)
 *	[x] Υποπρογράμματα (ΔΙΑΔΙΚΑΣΙΕΣ & ΣΥΝΑΡΤΗΣΕΙΣ)
-*	[ ] Βασικό UI τερματικού
+*	[x] Βασικό UI τερματικού
 *	[ ] Αντικειμενοστρέφεια
 *	[ ] Full 'ΓΛΩΣΣΑ' IDE 
