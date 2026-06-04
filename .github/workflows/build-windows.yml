@@ -21,7 +21,7 @@ jobs:
 
       - name: Build Native Executable (.exe)
         # Βεβαιώσου ότι το παρακάτω path προς το JAR είναι το σωστό
-        run: native-image -jar out/artifacts/GlwssaPlusPlus_jar/GlwssaPlusPlus.jar glwssa --no-fallback --initialize-at-build-time=org.antlr.v4.runtime
+        run: native-image -jar Release/GlwssaPlusPlus.jar glwssa --no-fallback --initialize-at-build-time=org.antlr.v4.runtime
 
       - name: Upload Windows Executable
         uses: actions/upload-artifact@v4 # <-- ΕΝΗΜΕΡΩΘΗΚΕ ΣΕ v4
