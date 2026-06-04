@@ -6,7 +6,9 @@
 
 [Εγχειρίδιο Γλώσσας](https://alkisg.mysch.gr/ΓΛΩΣΣΑ/)
 
-[ Δείτε τις οδηγίες ](Build-Tutorial.md)
+[ Δείτε τις οδηγίες χτισίματος ](Build-Tutorial.md)
+
+[First GlwssaPlusPlus Release](https://github.com/no-cash-george/GlwssaPlusPlus/releases/tag/v1-beta)
 
 ## 🏗️ Αρχιτεκτονική του Compiler
 
