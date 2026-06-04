@@ -1,0 +1,30 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ "main", "master" ] # Τρέχει κάθε φορά που κάνεις push
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Native Executable (.exe)
+        # Βάλε το σωστό path προς το JAR σου στο παρακάτω βήμα
+        run: native-image -jar Release/GlwssaPlusPlus.jar glwssa --no-fallback --initialize-at-build-time=org.antlr.v4.runtime
+
+      - name: Upload Windows Executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: Glwssa-Compiler-Windows
+          path: glwssa.exe
