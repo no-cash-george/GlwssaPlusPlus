@@ -6,7 +6,7 @@
 
 [Εγχειρίδιο Γλώσσας](https://alkisg.mysch.gr/ΓΛΩΣΣΑ/)
 
-# BUILD AND BUILD TUTORIAL COMMING SOON!!!!
+[ Δείτε τις οδηγίες ](Build-Tutorial.md)
 
 ## 🏗️ Αρχιτεκτονική του Compiler
 
