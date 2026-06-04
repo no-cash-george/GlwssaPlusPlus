@@ -30,7 +30,10 @@ param_list : ID (',' ID)* ;
 declarations : VARS_KW var_decl* ;
 
 // 3. A single declaration
-var_decl : TYPE_KW ID (',' ID)* ;
+var_decl : TYPE_KW var_def (',' var_def)* ;
+
+var_def : ID
+        | ID '[' NUMBER (',' NUMBER)* ']';
 
 // 4. Statements: Supported : assignment, printing, user input, if statements, switch statements, while statements
 statement : assignment

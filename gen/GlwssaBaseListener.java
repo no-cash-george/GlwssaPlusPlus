@@ -112,6 +112,18 @@ public class GlwssaBaseListener implements GlwssaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterVar_def(GlwssaParser.Var_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVar_def(GlwssaParser.Var_defContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterStatement(GlwssaParser.StatementContext ctx) { }
 	/**
 	 * {@inheritDoc}

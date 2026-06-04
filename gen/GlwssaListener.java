@@ -87,6 +87,16 @@ public interface GlwssaListener extends ParseTreeListener {
 	 */
 	void exitVar_decl(GlwssaParser.Var_declContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link GlwssaParser#var_def}.
+	 * @param ctx the parse tree
+	 */
+	void enterVar_def(GlwssaParser.Var_defContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GlwssaParser#var_def}.
+	 * @param ctx the parse tree
+	 */
+	void exitVar_def(GlwssaParser.Var_defContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link GlwssaParser#statement}.
 	 * @param ctx the parse tree
 	 */

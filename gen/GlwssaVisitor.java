@@ -58,6 +58,12 @@ public interface GlwssaVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitVar_decl(GlwssaParser.Var_declContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GlwssaParser#var_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVar_def(GlwssaParser.Var_defContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link GlwssaParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

@@ -77,7 +77,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     public String visitVar_decl(GlwssaParser.Var_declContext ctx)
     {
         String glwssaType = ctx.TYPE_KW().getText();
-        String glwssa2JavaType = switch (glwssaType)
+        String javaBaseType = switch (glwssaType)
         {
             case "ΑΚΕΡΑΙΕΣ:" -> "int";
             case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
@@ -86,24 +86,51 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             default -> "Object";
         };
 
-        for (org.antlr.v4.runtime.tree.TerminalNode node : ctx.ID()) // save the variable types of each one on the symbolTable
+        StringBuilder declarationsCode = new StringBuilder();
+        String defaultVal = Utils.getDefaultValue(javaBaseType);
+
+        // Τρέχουμε για κάθε var_def (είτε είναι απλό ID είτε πίνακας)
+        for (GlwssaParser.Var_defContext varDefCtx : ctx.var_def())
         {
-            String varName = Utils.toGreeklish(node.getText());
-            if (inSubprogram)
+            String varName = Utils.toGreeklish(varDefCtx.ID().getText());
+
+            // 1. Ελέγχουμε αν έχει διαστάσεις (Πίνακας)
+            if (varDefCtx.NUMBER() != null && !varDefCtx.NUMBER().isEmpty())
             {
-                symbolTableSubroutines.put(varName, glwssa2JavaType);
-            }else
+                StringBuilder brackets = new StringBuilder();
+                StringBuilder sizes = new StringBuilder();
+
+                for (org.antlr.v4.runtime.tree.TerminalNode numNode : varDefCtx.NUMBER()) {
+                    brackets.append("[]");
+                    sizes.append("[").append(numNode.getText()).append("]");
+                }
+
+                String arrayType = javaBaseType + brackets.toString();
+                if (inSubprogram) {
+                    symbolTableSubroutines.put(varName, arrayType);
+                } else {
+                    symbolTable.put(varName, arrayType);
+                }
+
+                // Δημιουργεί: int[] A = new int[10];
+                declarationsCode.append(arrayType).append(" ").append(varName)
+                        .append(" = new ").append(javaBaseType).append(sizes.toString()).append(";\n");
+            }
+            else // 2. Απλή μεταβλητή
             {
-                symbolTable.put(varName, glwssa2JavaType);
+                if (inSubprogram) {
+                    symbolTableSubroutines.put(varName, javaBaseType);
+                } else {
+                    symbolTable.put(varName, javaBaseType);
+                }
+
+                // Δημιουργεί: int A = 0;
+                declarationsCode.append(javaBaseType).append(" ").append(varName)
+                        .append(" = ").append(defaultVal).append(";\n");
             }
         }
 
-        String defaulValue = Utils.getDefaultValue(glwssa2JavaType);
-        String variables = ctx.ID().stream()
-                .map(node -> Utils.toGreeklish(node.getText()) + " = " + defaulValue)
-                .collect(Collectors.joining(", "));
-
-        return glwssa2JavaType + " " + variables + ";\n";
+        return declarationsCode.toString();
     }
 
     @Override
@@ -541,13 +568,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     }
 
     @Override
-    public String visitFunction ( GlwssaParser.FunctionContext ctx )
+    public String visitFunction(GlwssaParser.FunctionContext ctx)
     {
         inSubprogram = true;
         symbolTableSubroutines.clear();
 
         StringBuilder functionCode = new StringBuilder();
-
         String functionName = Utils.toGreeklish(ctx.ID().getText());
         String glwssaReturnType = ctx.RETURN_TYPE_KW().getText();
 
@@ -561,51 +587,9 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         };
 
         Map<String, String> localVarTypes = new HashMap<>();
-        if ( ctx.declarations() != null )
+        if (ctx.declarations() != null)
         {
-            for ( GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
-            {
-                String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch ( typeKW )
-                {
-                    case "ΑΚΕΡΑΙΕΣ:" -> "int";
-                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
-                    case "ΛΟΓΙΚΕΣ:" -> "boolean";
-                    case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
-                    default -> "Object";
-                };
-
-                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
-                {
-                    localVarTypes.put(Utils.toGreeklish(idNode.getText()), javaType);
-                }
-            }
-        }
-
-        StringBuilder parametersCode = new StringBuilder();
-        java.util.List<String> paramNames = new ArrayList<>();
-
-        if ( ctx.param_list() != null )
-        {
-            java.util.List<org.antlr.v4.runtime.tree.TerminalNode> paramIdNodes = ctx.param_list().ID();
-            for ( int i = 0; i < paramIdNodes.size(); i++)
-            {
-                String paramName = Utils.toGreeklish(paramIdNodes.get(i).getText());
-                paramNames.add(paramName);
-
-                String paramType = localVarTypes.getOrDefault(paramName, "int");
-                parametersCode.append(paramType + " " + paramName);
-                if (i < paramIdNodes.size() - 1)
-                    parametersCode.append(", ");
-            }
-        }
-
-        functionCode.append("public static " + javaReturnType + " " + functionName + "( " + parametersCode + ") \n{\n");
-        functionCode.append(javaReturnType + " " + functionName + " = " + Utils.getDefaultValue(javaReturnType) + ";\n");
-
-        if ( ctx.declarations() != null )
-        {
-            for ( GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
             {
                 String typeKW = varCtx.TYPE_KW().getText();
                 String javaType = switch (typeKW)
@@ -617,41 +601,92 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                     default -> "Object";
                 };
 
-                java.util.List<String> validLocalVariables = new ArrayList<>();
-
-                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
                 {
-                    String varName = Utils.toGreeklish(idNode.getText());
-                    if ( !paramNames.contains(varName) )
-                    {
-                        validLocalVariables.add(varName);
-                        symbolTableSubroutines.put(varName, javaType);
+                    String arrBrackets = "";
+                    if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
+                        for (int k = 0; k < defCtx.NUMBER().size(); k++) arrBrackets += "[]";
                     }
+                    localVarTypes.put(Utils.toGreeklish(defCtx.ID().getText()), javaType + arrBrackets);
                 }
-
-                if ( !validLocalVariables.isEmpty() )
-                {
-                    functionCode.append(javaType + " " + String.join(", ", validLocalVariables) + "; \n");
-                }
-
             }
         }
 
-        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        StringBuilder parametersCode = new StringBuilder();
+        java.util.List<String> paramNames = new ArrayList<>();
+
+        if (ctx.param_list() != null)
         {
-            functionCode.append(visit(stmntCtx) + "\n");
+            java.util.List<org.antlr.v4.runtime.tree.TerminalNode> paramIdNodes = ctx.param_list().ID();
+            for (int i = 0; i < paramIdNodes.size(); i++)
+            {
+                String paramName = Utils.toGreeklish(paramIdNodes.get(i).getText());
+                paramNames.add(paramName);
+
+                String paramType = localVarTypes.getOrDefault(paramName, "int");
+                parametersCode.append(paramType).append(" ").append(paramName);
+                if (i < paramIdNodes.size() - 1)
+                    parametersCode.append(", ");
+            }
         }
 
-        functionCode.append("return " + functionName + ";\n");
-        functionCode.append("\n}\n");
+        functionCode.append("public static ").append(javaReturnType).append(" ").append(functionName).append("( ").append(parametersCode).append(") \n{\n");
+        functionCode.append("    ").append(javaReturnType).append(" ").append(functionName).append(" = ").append(Utils.getDefaultValue(javaReturnType)).append(";\n");
+
+        if (ctx.declarations() != null)
+        {
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
+            {
+                String typeKW = varCtx.TYPE_KW().getText();
+                String javaType = switch (typeKW)
+                {
+                    case "ΑΚΕΡΑΙΕΣ:" -> "int";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΛΟΓΙΚΕΣ:" -> "boolean";
+                    case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
+                    default -> "Object";
+                };
+
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
+                {
+                    String varName = Utils.toGreeklish(defCtx.ID().getText());
+                    if (!paramNames.contains(varName))
+                    {
+                        if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
+                            String brackets = "";
+                            String sizes = "";
+                            for (org.antlr.v4.runtime.tree.TerminalNode numNode : defCtx.NUMBER()) {
+                                brackets += "[]";
+                                sizes += "[" + numNode.getText() + "]";
+                            }
+                            String arrayType = javaType + brackets;
+                            symbolTableSubroutines.put(varName, arrayType);
+                            functionCode.append("    ").append(arrayType).append(" ").append(varName)
+                                    .append(" = new ").append(javaType).append(sizes).append(";\n");
+                        } else {
+                            symbolTableSubroutines.put(varName, javaType);
+                            functionCode.append("    ").append(javaType).append(" ").append(varName)
+                                    .append(" = ").append(Utils.getDefaultValue(javaType)).append(";\n");
+                        }
+                    }
+                }
+            }
+        }
+
+        for (GlwssaParser.StatementContext stmntCtx : ctx.statement())
+        {
+            functionCode.append("    ").append(visit(stmntCtx)).append("\n");
+        }
+
+        functionCode.append("    return ").append(functionName).append(";\n");
+        functionCode.append("}\n\n");
 
         inSubprogram = false;
         return functionCode.toString();
     }
 
-    //todo
     @Override
-    public String visitProcedure ( GlwssaParser.ProcedureContext ctx )
+    public String visitProcedure(GlwssaParser.ProcedureContext ctx)
     {
         inSubprogram = true;
         symbolTableSubroutines.clear();
@@ -661,12 +696,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         Map<String, String> declaredTypes = new HashMap<>();
 
-        if ( ctx.declarations() != null )
+        if (ctx.declarations() != null)
         {
-            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
             {
                 String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch ( typeKW )
+                String javaType = switch (typeKW)
                 {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
                     case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
@@ -675,9 +710,13 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                     default -> "Object";
                 };
 
-                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
                 {
-                    declaredTypes.put(Utils.toGreeklish(idNode.getText()), javaType);
+                    String arrBrackets = "";
+                    if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
+                        for (int k = 0; k < defCtx.NUMBER().size(); k++) arrBrackets += "[]";
+                    }
+                    declaredTypes.put(Utils.toGreeklish(defCtx.ID().getText()), javaType + arrBrackets);
                 }
             }
         }
@@ -685,35 +724,40 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder parametersCode = new StringBuilder();
         java.util.List<String> paramNames = new ArrayList<>();
 
-        if ( ctx.param_list() != null )
+        if (ctx.param_list() != null)
         {
             java.util.List<org.antlr.v4.runtime.tree.TerminalNode> parameterNodes = ctx.param_list().ID();
 
-            for ( int i = 0; i < parameterNodes.size(); i++ )
+            for (int i = 0; i < parameterNodes.size(); i++)
             {
                 String parameterName = Utils.toGreeklish(parameterNodes.get(i).getText());
                 paramNames.add(parameterName);
 
                 String baseType = declaredTypes.getOrDefault(parameterName, "int");
-                String wrapperType = getWrapperType(baseType);
 
-                symbolTableSubroutines.put(parameterName, wrapperType);
-
-                parametersCode.append(wrapperType + " " + parameterName);
+                // Κρίσιμο: Οι πίνακες στη Java είναι ΗΔΗ references. Δεν θέλουν Wrapper.
+                if (baseType.contains("[]")) {
+                    symbolTableSubroutines.put(parameterName, baseType);
+                    parametersCode.append(baseType).append(" ").append(parameterName);
+                } else {
+                    String wrapperType = getWrapperType(baseType);
+                    symbolTableSubroutines.put(parameterName, wrapperType);
+                    parametersCode.append(wrapperType).append(" ").append(parameterName);
+                }
 
                 if (i < parameterNodes.size() - 1)
                     parametersCode.append(", ");
             }
         }
 
-        procedureCode.append("public static void " + procedureName + "( " + parametersCode + " )\n{\n");
+        procedureCode.append("public static void ").append(procedureName).append("( ").append(parametersCode).append(" )\n{\n");
 
-        if ( ctx.declarations() != null )
+        if (ctx.declarations() != null)
         {
-            for ( GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl() )
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
             {
                 String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch ( typeKW )
+                String javaType = switch (typeKW)
                 {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
                     case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
@@ -722,28 +766,35 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                     default -> "Object";
                 };
 
-                java.util.List<String> validLocals = new ArrayList<>();
-
-                for ( org.antlr.v4.runtime.tree.TerminalNode idNode : varCtx.ID() )
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
                 {
-                    String variableName = Utils.toGreeklish(idNode.getText());
-                    if ( !paramNames.contains(variableName) )
+                    String variableName = Utils.toGreeklish(defCtx.ID().getText());
+                    if (!paramNames.contains(variableName))
                     {
-                        validLocals.add(variableName);
-                        symbolTableSubroutines.put(variableName, javaType);
+                        if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
+                            String brackets = "";
+                            String sizes = "";
+                            for (org.antlr.v4.runtime.tree.TerminalNode numNode : defCtx.NUMBER()) {
+                                brackets += "[]";
+                                sizes += "[" + numNode.getText() + "]";
+                            }
+                            String arrayType = javaType + brackets;
+                            symbolTableSubroutines.put(variableName, arrayType);
+                            procedureCode.append("    ").append(arrayType).append(" ").append(variableName)
+                                    .append(" = new ").append(javaType).append(sizes).append(";\n");
+                        } else {
+                            symbolTableSubroutines.put(variableName, javaType);
+                            procedureCode.append("    ").append(javaType).append(" ").append(variableName)
+                                    .append(" = ").append(Utils.getDefaultValue(javaType)).append(";\n");
+                        }
                     }
-                }
-
-                if ( !validLocals.isEmpty() )
-                {
-                    procedureCode.append(javaType + " " + String.join(", ", validLocals) + ";\n");
                 }
             }
         }
 
-        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
+        for (GlwssaParser.StatementContext stmntCtx : ctx.statement())
         {
-            procedureCode.append(visit(stmntCtx) + "\n");
+            procedureCode.append("    ").append(visit(stmntCtx)).append("\n");
         }
 
         procedureCode.append("}\n\n");
