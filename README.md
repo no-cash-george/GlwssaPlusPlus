@@ -164,4 +164,8 @@ Compilation Successful. Generated ProgramName.java
 *	[x] Υποπρογράμματα (ΔΙΑΔΙΚΑΣΙΕΣ & ΣΥΝΑΡΤΗΣΕΙΣ)
 *	[x] Βασικό UI τερματικού
 *	[ ] Αντικειμενοστρέφεια
-*	[ ] Full 'ΓΛΩΣΣΑ' IDE 
+## Full 'ΓΛΩΣΣΑ' IDE (JavaFX)
+- [ ] **Phase 1 — Editor Shell**: RichTextFX-based code editor, syntax highlighting (reusing the ANTLR lexer), save/load
+- [ ] **Phase 2 — Run**: In-IDE compile & execute pipeline (`javac` + `java`), console output panel, error highlighting mapped back to `.gl` source lines
+- [ ] **Phase 3 — Source Map**: Line-number mapping between `.gl` source and generated Java, emitted during code generation
+- [ ] **Phase 4 — Step-by-Step Debugger**: JDI-based execution stepping, current-line highlighting, variable watch panel
