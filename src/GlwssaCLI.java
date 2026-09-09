@@ -80,7 +80,7 @@ public class GlwssaCLI {
      * Το .inheritIO() εξασφαλίζει ότι το `Scanner(System.in)` της παραγόμενης Java 
      * θα διαβάζει κανονικά από το τερματικό που βρισκόμαστε τώρα.
      */
-    private static int executeTerminalCommand(String... command) {
+    public static int executeTerminalCommand(String... command) {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.inheritIO();
@@ -96,7 +96,7 @@ public class GlwssaCLI {
      * Διαβάζει γρήγορα το αρχείο ΓΛΩΣΣΑΣ για να βρει το όνομα του προγράμματος
      * και το περνάει από το Utils.toGreeklish για να ξέρουμε ποιο .java αρχείο να τρέξουμε.
      */
-    private static String extractProgramName(File file) {
+    public static String extractProgramName(File file) {
         try (Scanner fileScanner = new Scanner(file)) {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine().trim();

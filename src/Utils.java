@@ -43,8 +43,7 @@ public class Utils
         return greekText;
     }
 
-    public static void writeArrayListToFile(ArrayList<String> lines, String filename)
-    {
+    public static void writeArrayListToFile(ArrayList<String> lines, String filename) {
         File outputFile = new File(filename);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
@@ -56,5 +55,4 @@ public class Utils
             e.printStackTrace();
         }
     }
-
 }
