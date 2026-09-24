@@ -136,7 +136,9 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     @Override
     public String visitAssignment(GlwssaParser.AssignmentContext ctx)
     {
+        System.out.println("Visit Assignment");
         String target;
+        boolean addFloatCast = false;
 
         // Check assignment target
         if ( ctx.ID() != null )
@@ -146,9 +148,18 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
             if ( type != null && type.startsWith("Ref") )
             {
+                if ( type.startsWith("RefFloat") || type.startsWith("float") )
+                {
+                    addFloatCast = true;
+                }
                 target = varName + ".value";
             }else
             {
+                if ( type.startsWith("float") )
+                {
+                    addFloatCast = true;
+                }
+
                 target = varName;
             }
         }else // if ID is null then the target is an array
@@ -157,6 +168,13 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         }
 
         String expression = visit(ctx.expr());
+
+        if (addFloatCast)
+        {
+            System.out.println("FLOAT!!!!!!!!!!!!");
+            return target + " = " + "(float) ( " + expression + " ) ;";
+        }
+
         return target + " = " + expression + " ;";
     }
 

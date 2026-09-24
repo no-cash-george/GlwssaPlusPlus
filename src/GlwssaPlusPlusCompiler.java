@@ -22,11 +22,12 @@ public class GlwssaPlusPlusCompiler
         }
     }
 
-    public static void compile(String filePath) throws java.io.IOException {
+    public static File compile(String filePath) throws java.io.IOException {
         File srcFile = new File(filePath);
+
         if (!srcFile.exists()) {
             System.err.println("ERROR: File not found.");
-            return; // Stops here, no exception thrown
+            return null; // Stops here, no exception thrown
         }
 
         // 1. Read characters and output Tokens
@@ -41,7 +42,7 @@ public class GlwssaPlusPlusCompiler
         // If the Lexer or Parser found bad syntax, stop BEFORE transpiling
         if (parser.getNumberOfSyntaxErrors() > 0) {
             System.err.println("ERROR: Syntax errors found in Glossa code. Compilation aborted.");
-            return;
+            return null;
         }
         // ----------------------
 
@@ -53,10 +54,22 @@ public class GlwssaPlusPlusCompiler
         GlwssaParser.FileContext fileTree = (GlwssaParser.FileContext) tree;
         String programName = Utils.toGreeklish(fileTree.program().ID().getText());
 
-        Utils.writeArrayListToFile(
+        // Extract the parent directory from the incoming source path
+        String parentDir = new java.io.File(filePath).getParent();
+        File buildDir = new java.io.File(parentDir, programName + "JavaBytecode");
+
+        if (!buildDir.exists()) {
+            buildDir.mkdirs();
+        }
+        String absoluteOutputPath = buildDir.getAbsolutePath() + java.io.File.separator + programName + ".java";
+
+        File outputFile = Utils.writeArrayListToFile(
                 new java.util.ArrayList<>(java.util.List.of(javaOutput.split("\n"))),
-                programName + ".java"
+                absoluteOutputPath
         );
-        System.out.println("Compilation Successful. Generated " + programName + ".java");
+
+        System.out.println("Compilation Successful. Generated " + absoluteOutputPath);
+
+        return outputFile;
     }
 }
