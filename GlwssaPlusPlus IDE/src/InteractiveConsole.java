@@ -73,6 +73,18 @@ public class InteractiveConsole extends TextArea {
         });
     }
 
+    public void clearConsole() {
+        Platform.runLater(() -> {
+            // 1. Drop the shield so the TextFormatter permits the deletion
+            inputStart = 0;
+
+            // 2. Erase all text
+            clear();
+
+            // 3. Re-anchor the input boundary at the new beginning
+            inputStart = getLength(); // Which is now safely 0
+        });    }
+
     public class ConsoleOutputStream extends OutputStream {
         private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 

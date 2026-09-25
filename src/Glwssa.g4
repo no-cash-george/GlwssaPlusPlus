@@ -5,7 +5,7 @@ file : program subprogram* EOF ;
 // Glwssa Parser Rules
 
 // 1. The program must have a name variables a start statements and an end
-program : PROGRAM_KW ID declarations START_KW statement* END_KW ;
+program : PROGRAM_KW ID declarations? START_KW statement* END_KW ;
 
 // 1.1 Procedures and Functions
 subprogram : function | procedure ;

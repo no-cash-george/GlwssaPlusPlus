@@ -13,9 +13,12 @@ public class ProgramRunner {
         try {
             // 1. Transpilation (ΓΛΩΣΣΑ -> Java)
             GlwssaPlusPlusCompiler.compile(file.getAbsolutePath());
+        } catch (TranspilationException e) {
+            System.err.println("Συντακτικό σφάλμα");
+            System.err.println(e.getMessage());
+            return;
         } catch (Exception e) {
-            System.err.println("ΣΦΑΛΜΑ TRANSPILER: " + e.getMessage());
-            throw new RuntimeException(e);
+            System.err.println("Εσωτερικό σφάλμα μεταγλώττισης");
         }
 
         String programName = GlwssaCLI.extractProgramName(file);

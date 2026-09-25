@@ -117,10 +117,11 @@ public class UI extends Application {
         MenuItem runItem = new MenuItem("Save & Run");
         runItem.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCodeCombination.SHORTCUT_DOWN));
         runItem.setOnAction(e -> {
+            consoleArea.clearConsole();
+
             currentFile = Backend.saveFile(currentFile, primaryStage, codeArea);
             System.out.println("Auto Save");
             runItem.setDisable(true);
-            //consoleArea.clearConsole();
 
             // Execute on a background thread to prevent UI freezing
             new Thread(() -> {

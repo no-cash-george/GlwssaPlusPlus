@@ -80,7 +80,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String javaBaseType = switch (glwssaType)
         {
             case "ΑΚΕΡΑΙΕΣ:" -> "int";
-            case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+            case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
             case "ΛΟΓΙΚΕΣ:" -> "boolean";
             case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
             default -> "Object";
@@ -136,7 +136,6 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     @Override
     public String visitAssignment(GlwssaParser.AssignmentContext ctx)
     {
-        System.out.println("Visit Assignment");
         String target;
         boolean addFloatCast = false;
 
@@ -172,7 +171,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         if (addFloatCast)
         {
             System.out.println("FLOAT!!!!!!!!!!!!");
-            return target + " = " + "(float) ( " + expression + " ) ;";
+            return target + " = " + expression + " ;";
         }
 
         return target + " = " + expression + " ;";

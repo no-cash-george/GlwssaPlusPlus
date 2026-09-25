@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 public class GlwssaPlusPlusCompiler
 {
+    @Deprecated
     public static void main(String[] args)
     {
         System.out.println("Give me the file's absolute path:");
@@ -33,10 +34,14 @@ public class GlwssaPlusPlusCompiler
         // 1. Read characters and output Tokens
         org.antlr.v4.runtime.CharStream charStream = org.antlr.v4.runtime.CharStreams.fromFileName(filePath);
         GlwssaLexer lexer = new GlwssaLexer(charStream);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(TranspileErrorListener.INSTANCE);
         org.antlr.v4.runtime.CommonTokenStream tokens = new org.antlr.v4.runtime.CommonTokenStream(lexer);
 
         // 2. Read Tokens and build the Abstract Syntax Tree (AST)
         GlwssaParser parser = new GlwssaParser(tokens);
+        parser.removeErrorListeners();
+        parser.addErrorListener(TranspileErrorListener.INSTANCE);
         org.antlr.v4.runtime.tree.ParseTree tree = parser.file(); // Start parsing at the 'program' rule
 
         // If the Lexer or Parser found bad syntax, stop BEFORE transpiling
