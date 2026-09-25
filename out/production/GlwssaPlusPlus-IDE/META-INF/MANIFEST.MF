@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Main-Class: Launcher
+Class-Path: antlr-runtime-4.13.2.jar javafx-controls-21.0.2.jar javafx-c
+ ontrols-21.0.2-mac-aarch64.jar javafx-graphics-21.0.2.jar javafx-graphi
+ cs-21.0.2-mac-aarch64.jar javafx-base-21.0.2.jar javafx-base-21.0.2-mac
+ -aarch64.jar richtextfx-0.11.3.jar reactfx-2.0-M5.jar undofx-2.1.1.jar 
+ flowless-0.7.3.jar wellbehavedfx-0.3.3.jar antlr-runtime-4.13.2.jar
+

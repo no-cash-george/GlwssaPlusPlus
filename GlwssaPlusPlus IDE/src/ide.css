@@ -1,0 +1,31 @@
+.root {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 14px;
+}
+
+.keyword {
+    -fx-fill: #000080;
+    -fx-font-weight: bold;
+}
+
+.string {
+    -fx-fill: #008000;
+}
+
+.number {
+    -fx-fill: #FF0000;
+}
+
+.operator {
+    -fx-fill: #808080;
+}
+
+.comment {
+    -fx-fill: #808080;
+    -fx-font-style: italic;
+}
+
+.typeIndicator
+{
+    -fx-font-style: bold;
+}
