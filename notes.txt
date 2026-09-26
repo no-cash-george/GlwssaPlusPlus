@@ -1,4 +1,0 @@
-changed the transpiler behavior. "ΠΡΑΓΜΑΤΙΚΕΣ" now transpiles to double, no need for typecasting
-the variables field is now optional as per the ΑΕΠΠ books
-added exceptions to the transpiler
-console clearing now works
