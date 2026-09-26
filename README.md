@@ -6,7 +6,7 @@
 
 [Εγχειρίδιο Γλώσσας](https://alkisg.mysch.gr/ΓΛΩΣΣΑ/)
 
-[ Δείτε τις οδηγίες χτισίματος ](Build-Tutorial.md)
+[ Δείτε τις οδηγίες χτισίματος (Deprecated - New Build Tutorial Coming Soon) ](Build-Tutorial.md)
 
 [First GlwssaPlusPlus Release](https://github.com/no-cash-george/GlwssaPlusPlus/releases/tag/v1-beta)
 
@@ -18,18 +18,6 @@
 2. **Syntax Analysis (Parser):** Ελέγχει αν τα Tokens υπακούουν στους κανόνες της ΓΛΩΣΣΑΣ και χτίζει ένα Abstract Syntax Tree (AST). Διαχειρίζεται αυτόματα την προτεραιότητα των μαθηματικών πράξεων.
 3. **Semantic Analysis (Symbol Table):** Θυμάται τους τύπους των μεταβλητών που δηλώνονται (ΑΚΕΡΑΙΕΣ, ΠΡΑΓΜΑΤΙΚΕΣ, κλπ.) ώστε να χρησιμοποιεί τις σωστές μεθόδους της Java (π.χ. `scanner.nextInt()` vs `scanner.nextFloat()`).
 4. **Code Generation (Transpiler/Visitor Pattern):** Διασχίζει το AST και παράγει τον τελικό, έτοιμο προς εκτέλεση κώδικα Java. Μετατρέπει αυτόματα τα ελληνικά ονόματα μεταβλητών σε Greeklish, ώστε να είναι έγκυρα Java identifiers.
-
-## ✨ Υποστηριζόμενα Χαρακτηριστικά (Μέχρι στιγμής)
-
-- **Βασική Δομή:** `ΠΡΟΓΡΑΜΜΑ`, `ΜΕΤΑΒΛΗΤΕΣ`, `ΑΡΧΗ`, `ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ`
-- **Δήλωση Μεταβλητών:** `ΑΚΕΡΑΙΕΣ:`, `ΠΡΑΓΜΑΤΙΚΕΣ:`, `ΛΟΓΙΚΕΣ:`, `ΧΑΡΑΚΤΗΡΕΣ:`
-- **Εντολή Εκχώρησης:** `<-`
-- **Εντολές Εισόδου / Εξόδου:**
-  - `ΓΡΑΨΕ`: Μεταφράζεται σε `System.out.println()` (υποστηρίζει μίξη strings και εκφράσεων).
-  - `ΔΙΑΒΑΣΕ`: Μεταφράζεται δυναμικά σε χρήση της κλάσης `Scanner`, κάνοντας type-checking μέσω του Symbol Table.
-- **Μαθηματικές & Λογικές Πράξεις:** `+`, `-`, `*`, `/`, `DIV`, `MOD`, `=`, `<>`, `>`, `<`, `>=`, `<=`
-- **Δομές Επιλογής:** Πλήρης υποστήριξη για `ΑΝ ... ΤΟΤΕ`, `ΑΛΛΙΩΣ_ΑΝ ... ΤΟΤΕ`, `ΑΛΛΙΩΣ` και `ΤΕΛΟΣ_ΑΝ` με δυνατότητα εμφώλευσης (nesting).
-- **Graceful Error Handling:** Αν ανιχνευθεί συντακτικό λάθος, το compilation σταματάει, τυπώνει τη γραμμή του λάθους και αποτρέπει τη δημιουργία σπασμένης Java.
 
 ## 📝 Παράδειγμα Χρήσης
 
@@ -135,25 +123,17 @@ public class test {
 }
 ```
 
-## 🚀 Οδηγίες Εγκατάστασης (IntelliJ IDEA)
-Για να τρέξεις ή να τροποποιήσεις τον compiler, απαιτείται το ANTLR v4.
-1.	Κάνε clone το repository.
-  
-2.	Εγκατάστησε το ANTLR v4 Plugin στο IntelliJ IDEA (Settings -> Plugins -> Marketplace).
-  
-3.	Κατέβασε το ANTLR Java Runtime JAR (έκδοση 4.x).
-  
-4.	Πρόσθεσε το JAR στο project σου: File -> Project Structure -> Modules -> Dependencies -> (+) JARs or Directories.
-  
-5.	Κάνε δεξί κλικ στο αρχείο Glwssa.g4 και επίλεξε "Generate ANTLR Recognizer".
-  
-6.	Κάνε δεξί κλικ στον φάκελο gen που δημιουργήθηκε και επίλεξε Mark Directory as -> Generated Sources Root.
+## 🚀 Οδηγίες Εγκατάστασης & Build (Maven & IntelliJ)
+### Το project βασίζεται πλέον στο Maven, συνεπώς δεν χρειάζεται να κατεβάσεις χειροκίνητα κανένα JAR αρχείο. Όλα τα dependencies (ANTLR v4, JavaFX, RichTextFX) εγκαθίστανται αυτόματα.
+1. Κάνε clone το repository.
+2. Άνοιξε το project στο IntelliJ IDEA (File -> Open -> select the pom.xml at the root of the repo -> Open as project.). Το IDE θα αναγνωρίσει αυτόματα το project structure και θα συγχρονίσει τα modules (glwssapp-core & glwssapp-ide). 
+3. (Προαιρετικό) Εγκατάστησε το ANTLR v4 Plugin στο IntelliJ (Settings -> Plugins -> Marketplace) για να έχεις syntax highlighting στα .g4 αρχεία.
+4. Για να δημιουργήσεις τον Lexer και τον Parser αυτόματα μέσω του ANTLR, άνοιξε το Maven tab δεξιά, πήγαινε στο glwssa-parent -> lifecycle -> compile και glwssa-parent -> glwssapp-core -> lifecycle -> compile. Εναλλακτικά, τρέξε στο τερματικό: mvn clean compile.
 
-## 💻 Πώς να το τρέξεις
-Κάνε run την κλάση GlwssaPlusPlusCompiler. Το πρόγραμμα θα σου ζητήσει το απόλυτο path (absolute path) του αρχείου .gl που θέλεις να κάνεις compile:
-Give me the file's absolute path:
-> /path/to/your/script.gl
-Compilation Successful. Generated ProgramName.java
+## 💻 Πώς να το τρέξεις το IDE (Μέσω IntelliJ)
+1. Από το μενού του maven κανε reload all Maven projects
+2. Τελος απλά τρέχουμε το launcher.java απο τον φάκελο glwssapp-ide -> src -> main -> java.
+
 
 ## 🗺️ Roadmap (Τι ακολουθεί)
 *	[x] Symbol Table
