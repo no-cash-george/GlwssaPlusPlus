@@ -124,7 +124,7 @@ public class test {
 ```
 
 ## 🚀 Οδηγίες Εγκατάστασης & Build (Maven & IntelliJ)
-### Το project βασίζεται πλέον στο Maven, συνεπώς δεν χρειάζεται να κατεβάσεις χειροκίνητα κανένα JAR αρχείο. Όλα τα dependencies (ANTLR v4, JavaFX, RichTextFX) εγκαθίστανται αυτόματα.
+### Το project βασίζεται πλέον στο Maven, συνεπώς δεν χρειάζεται να κατεβάσεις χειροκίνητα κανένα JAR αρχείο. Όλα τα dependencies (ANTLR v4, JavaFX, RichTextFX) εγκαθίστανται αυτόματα. Χτισμένο σε Azul Zulu JDK version 21 
 1. Κάνε clone το repository.
 2. Άνοιξε το project στο IntelliJ IDEA (File -> Open -> select the pom.xml at the root of the repo -> Open as project.). Το IDE θα αναγνωρίσει αυτόματα το project structure και θα συγχρονίσει τα modules (glwssapp-core & glwssapp-ide). 
 3. (Προαιρετικό) Εγκατάστησε το ANTLR v4 Plugin στο IntelliJ (Settings -> Plugins -> Marketplace) για να έχεις syntax highlighting στα .g4 αρχεία.
