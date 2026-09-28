@@ -10,6 +10,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Set;
 
 public class UI extends Application {
@@ -17,6 +18,7 @@ public class UI extends Application {
     private CodeArea codeArea;
     private InteractiveConsole consoleArea;
     private File currentFile;
+    private File currentJavaFile;
     private Stage primaryStage;
 
     @Override
@@ -126,7 +128,7 @@ public class UI extends Application {
             // Execute on a background thread to prevent UI freezing
             new Thread(() -> {
                 try {
-                    ProgramRunner.compileAndRun(currentFile);
+                    currentJavaFile = ProgramRunner.compileAndRun(currentFile);
                 }finally {
                     runItem.setDisable(false);
                 }
@@ -143,10 +145,17 @@ public class UI extends Application {
             }).start();
         });
 
+        Menu devOptionsMenu = new Menu("Developer Options");//todo remove for prod
+        MenuItem showJavaCode = new MenuItem("Show Generated Java Code");//todo remove for prod
+        showJavaCode.setOnAction(e -> {
+            showJavaCode(currentJavaFile);
+        });
+
         fileMenu.getItems().addAll(openItem, saveItem);
         runMenu.getItems().addAll(runItem, runStepByStep);
+        devOptionsMenu.getItems().addAll(showJavaCode);//todo remove for prod
 
-        menuBar.getMenus().addAll(fileMenu, runMenu);
+        menuBar.getMenus().addAll(fileMenu, runMenu, devOptionsMenu);
         root.setTop(menuBar);
 
         // 4. Display
@@ -156,6 +165,30 @@ public class UI extends Application {
         stage.setTitle("ΓΛΩΣΣΑ++ IDE");
         stage.setScene(scene);
         stage.show();
+    }
+
+    private static void showJavaCode (File generatedJavaFile)
+    {
+        javafx.application.Platform.runLater(() -> {
+            try {
+                // Read the newly generated Java file from the disk
+                String generatedCode = Files.readString(generatedJavaFile.toPath());
+
+                // Dump it into a simple text area
+                TextArea codeView = new TextArea(generatedCode);
+                codeView.setEditable(false);
+                codeView.setStyle("-fx-font-family: 'Consolas'; -fx-background-color: #2b2b2b; -fx-text-fill: #a9b7c6;");
+
+                // Pop open a new window to display it
+                Stage stage = new Stage();
+                stage.setTitle("Developer Diagnostics: " + generatedJavaFile.getName());
+                stage.setScene(new Scene(codeView, 600, 700));
+                stage.show();
+
+            } catch (Exception e) {
+                System.err.println("ΣΦΑΛΜΑ DEV MENU: Αδυναμία ανάγνωσης του αρχείου Java.");
+            }
+        });
     }
 
     public static void main(String[] args) {
