@@ -1,0 +1,78 @@
+name: Build IDE Binaries
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build-binaries:
+    strategy:
+      matrix:
+        # This array defines the three parallel runners
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Compile Fat JAR
+        run: mvn clean package
+
+      # ==========================================
+      # WINDOWS PIPELINE
+      # ==========================================
+      - name: Package Windows Executable
+        if: runner.os == 'Windows'
+        run: |
+          cd glwssapp-ide/target
+          jpackage --type app-image --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT-standalone.jar --main-class Launcher
+          Compress-Archive -Path GlwssaIDE -DestinationPath GlwssaIDE-Windows.zip
+
+      - name: Upload Windows Artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlwssaIDE-Windows
+          path: glwssapp-ide/target/GlwssaIDE-Windows.zip
+
+      # ==========================================
+      # MACOS PIPELINE
+      # ==========================================
+      - name: Package macOS DMG
+        if: runner.os == 'macOS'
+        run: |
+          cd glwssapp-ide/target
+          # jpackage on macOS can natively forge a highly polished .dmg file
+          jpackage --type dmg --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT-standalone.jar --main-class Launcher
+
+      - name: Upload macOS Artifact
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlwssaIDE-macOS
+          path: glwssapp-ide/target/*.dmg
+
+      # ==========================================
+      # LINUX PIPELINE
+      # ==========================================
+      - name: Package Linux AppImage
+        if: runner.os == 'Linux'
+        run: |
+          cd glwssapp-ide/target
+          jpackage --type app-image --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT-standalone.jar --main-class Launcher
+          tar -czvf GlwssaIDE-Linux.tar.gz GlwssaIDE/
+
+      - name: Upload Linux Artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlwssaIDE-Linux
+          path: glwssapp-ide/target/GlwssaIDE-Linux.tar.gz
