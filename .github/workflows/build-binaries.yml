@@ -1,7 +1,7 @@
 name: Build IDE Binaries
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   build-binaries:
@@ -9,7 +9,7 @@ jobs:
       fail-fast: false # Prevents one failure from cancelling the other OS builds
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-    
+
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -34,7 +34,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           cd glwssapp-ide/target
-          jpackage --type app-image --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT-standalone.jar --main-class Launcher
+          jpackage --type app-image --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT.jar --main-class Launcher
           Compress-Archive -Path GlwssaIDE -DestinationPath GlwssaIDE-Windows.zip
 
       - name: Upload Windows Artifact
@@ -51,7 +51,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           cd glwssapp-ide/target
-          jpackage --type dmg --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT-standalone.jar --main-class Launcher
+          jpackage --type dmg --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT.jar --main-class Launcher
 
       - name: Upload macOS Artifact
         if: runner.os == 'macOS'
@@ -67,7 +67,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           cd glwssapp-ide/target
-          jpackage --type app-image --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT-standalone.jar --main-class Launcher
+          jpackage --type app-image --name "GlwssaIDE" --input . --main-jar glwssapp-ide-1.0-SNAPSHOT.jar --main-class Launcher
           tar -czvf GlwssaIDE-Linux.tar.gz GlwssaIDE/
 
       - name: Upload Linux Artifact
