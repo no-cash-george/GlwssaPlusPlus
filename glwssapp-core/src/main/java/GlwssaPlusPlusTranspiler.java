@@ -844,6 +844,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         return callCode.toString();
     }
 
+    @Override
+    public String visitUnaryMinusExpr(GlwssaParser.UnaryMinusExprContext ctx )
+    {
+        return "- " + visit(ctx.expr());
+    }
+
     private String resolveVariableType ( String varName )
     {
         if( !inSubprogram && symbolTableSubroutines.containsKey(varName) )

@@ -87,7 +87,8 @@ array_access : ID '[' expr (',' expr)* ']';
 procedure_call_statement : CALL_KW ID '(' (expr (',' expr)*)? ')' ;
 
 // Expressions
-expr : expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
+expr : MINUS expr                                    # UnaryMinusExpr
+     | expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | expr op=(PLUS | MINUS) expr                   # MathExpr
      | expr op=(EQ | NEQ | LT | GT | LTE | GTE) expr # RelationalExpr
      | ID '(' (expr (',' expr)*)? ')'                # FunctionCallExpr
