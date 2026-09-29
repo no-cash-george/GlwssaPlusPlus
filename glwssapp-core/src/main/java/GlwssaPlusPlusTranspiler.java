@@ -154,7 +154,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 target = varName + ".value";
             }else
             {
-                if ( type.startsWith("float") )
+                if ( type != null && type.startsWith("float") )
                 {
                     addFloatCast = true;
                 }
@@ -303,7 +303,6 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             }
 
             String javaType = resolveVariableType(lookupName);
-            System.out.println("Var : " + target + " Type : " + javaType);
 
             if (javaType == null) {
                 throw new RuntimeException("SEMANTIC ERROR: Variable '" + lookupName + "' used in ΔΙΑΒΑΣΕ but was never declared in ΜΕΤΑΒΛΗΤΕΣ.");
@@ -662,6 +661,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 paramNames.add(paramName);
 
                 String paramType = localVarTypes.getOrDefault(paramName, "int");
+                symbolTableSubroutines.put(paramName, paramType);
                 parametersCode.append(paramType).append(" ").append(paramName);
                 if (i < paramIdNodes.size() - 1)
                     parametersCode.append(", ");
@@ -670,6 +670,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         functionCode.append("public static ").append(javaReturnType).append(" ").append(functionName).append("( ").append(parametersCode).append(") \n{\n");
         functionCode.append("    ").append(javaReturnType).append(" ").append(functionName).append(" = ").append(Utils.getDefaultValue(javaReturnType)).append(";\n");
+        symbolTableSubroutines.put(functionName, javaReturnType);
 
         if (ctx.declarations() != null)
         {
@@ -873,7 +874,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
     private String resolveVariableType ( String varName )
     {
-        if( !inSubprogram && symbolTableSubroutines.containsKey(varName) )
+        if( inSubprogram && symbolTableSubroutines.containsKey(varName) )
         {
             return symbolTableSubroutines.get(varName);
         }

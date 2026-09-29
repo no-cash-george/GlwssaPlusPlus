@@ -19,6 +19,7 @@ public class ProgramRunner {
             return null;
         } catch (Exception e) {
             System.err.println("Εσωτερικό σφάλμα μεταγλώττισης");
+            DeveloperTools.showErrorWindow(e.getMessage());
         }
 
         String programName = GlwssaCLI.extractProgramName(file);
@@ -83,6 +84,7 @@ public class ProgramRunner {
 
                 // Invoke main method. The array is cast to Object to prevent varargs unpacking exceptions.
                 mainMethod.invoke(null, (Object) new String[0]);
+                System.out.println("Program End");
             }
 
         } catch (ClassNotFoundException e) {

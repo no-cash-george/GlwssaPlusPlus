@@ -9,6 +9,10 @@ import java.util.Collections;
 public class GlwssaHighlighter {
 
     public static StyleSpans<Collection<String>> computeHighlighting(String text) {
+        if (text.isEmpty()) {
+            return org.fxmisc.richtext.model.StyleSpans.singleton(java.util.Collections.emptyList(), 0);
+        }
+
         GlwssaLexer lexer = new GlwssaLexer(CharStreams.fromString(text));
 
         lexer.removeErrorListeners();
