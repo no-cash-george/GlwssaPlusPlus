@@ -154,7 +154,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 target = varName + ".value";
             }else
             {
-                if ( type.startsWith("float") )
+                if ( type != null && type.startsWith("float") )
                 {
                     addFloatCast = true;
                 }
@@ -272,29 +272,45 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     }
 
     @Override
-    public String visitRead_stmnt(GlwssaParser.Read_stmntContext ctx)
-    {
+    public String visitRead_stmnt(GlwssaParser.Read_stmntContext ctx) {
         StringBuilder readCode = new StringBuilder();
 
-        for (org.antlr.v4.runtime.tree.TerminalNode node : ctx.ID())// go through all the printed variables
-        {
-            String varName = Utils.toGreeklish(node.getText());
+        // Start at index 1 to skip the 'ΔΙΑΒΑΣΕ' keyword token itself
+        for (int i = 1; i < ctx.getChildCount(); i++) {
+            org.antlr.v4.runtime.tree.ParseTree child = ctx.getChild(i);
 
-            String javaType = resolveVariableType(varName);
-
-            if (javaType == null)
-            {
-                throw new RuntimeException("SEMANTIC ERROR: Variable '" + node.getText() + "' used in ΔΙΑΒΑΣΕ but was never declared in ΜΕΤΑΒΛΗΤΕΣ.");
+            // Skip the commas entirely
+            if (child.getText().equals(",")) {
+                continue;
             }
 
-            String target = varName;
-            String baseType = javaType;
+            String target;     // The literal Java text to assign to (e.g., "a" or "A[(v) - 1]")
+            String lookupName; // The base name for the symbol table (e.g., "a" or "A")
 
-            if (javaType.startsWith("Ref"))
-            {
-                target = varName + ".value";
-                baseType = switch (javaType)
-                {
+            if (child instanceof GlwssaParser.Array_accessContext) {
+                // Intercept array access logic
+                GlwssaParser.Array_accessContext arrCtx = (GlwssaParser.Array_accessContext) child;
+
+                // Translate the array access (this will route to your visitArray_access method)
+                target = visit(arrCtx);
+
+                // For the symbol table, we only want the array's root name (e.g., "A")
+                lookupName = Utils.toGreeklish(arrCtx.ID().getText());
+            } else {
+                // It is a standard ID token
+                target = Utils.toGreeklish(child.getText());
+                lookupName = target;
+            }
+
+            String javaType = resolveVariableType(lookupName);
+
+            if (javaType == null) {
+                throw new RuntimeException("SEMANTIC ERROR: Variable '" + lookupName + "' used in ΔΙΑΒΑΣΕ but was never declared in ΜΕΤΑΒΛΗΤΕΣ.");
+            }
+
+            if (javaType.startsWith("Ref")) {
+                target = target + ".value";
+                javaType = switch (javaType) {
                     case "RefInt" -> "int";
                     case "RefFloat" -> "float";
                     case "RefBoolean" -> "boolean";
@@ -303,16 +319,20 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 };
             }
 
-            String chosenScannerMethod = switch (javaType)
-            {
+            String chosenScannerMethod = switch (javaType) {
                 case "int" -> "nextInt()";
                 case "float" -> "nextFloat()";
                 case "boolean" -> "nextBoolean()";
                 case "String" -> "next()";
+                case "int[]" -> "nextInt()";
+                case "float[]" -> "nextFloat()";
+                case "boolean[]" -> "nextBoolean()";
+                case "String[]" -> "next()";
                 default -> "next()";
             };
 
-            readCode.append(varName).append(" = scanner.").append(chosenScannerMethod).append(";\n");
+            // Note: Using 'target' here, not 'varName'
+            readCode.append(target).append(" = scanner.").append(chosenScannerMethod).append(";\n");
         }
 
         return readCode.toString();
@@ -641,6 +661,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 paramNames.add(paramName);
 
                 String paramType = localVarTypes.getOrDefault(paramName, "int");
+                symbolTableSubroutines.put(paramName, paramType);
                 parametersCode.append(paramType).append(" ").append(paramName);
                 if (i < paramIdNodes.size() - 1)
                     parametersCode.append(", ");
@@ -649,6 +670,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         functionCode.append("public static ").append(javaReturnType).append(" ").append(functionName).append("( ").append(parametersCode).append(") \n{\n");
         functionCode.append("    ").append(javaReturnType).append(" ").append(functionName).append(" = ").append(Utils.getDefaultValue(javaReturnType)).append(";\n");
+        symbolTableSubroutines.put(functionName, javaReturnType);
 
         if (ctx.declarations() != null)
         {
@@ -844,9 +866,15 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         return callCode.toString();
     }
 
+    @Override
+    public String visitUnaryMinusExpr(GlwssaParser.UnaryMinusExprContext ctx )
+    {
+        return "- " + visit(ctx.expr());
+    }
+
     private String resolveVariableType ( String varName )
     {
-        if( !inSubprogram && symbolTableSubroutines.containsKey(varName) )
+        if( inSubprogram && symbolTableSubroutines.containsKey(varName) )
         {
             return symbolTableSubroutines.get(varName);
         }

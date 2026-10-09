@@ -8,7 +8,7 @@ import java.net.URLClassLoader;
 
 public class ProgramRunner {
 
-    public static void compileAndRun(File file) {
+    public static File compileAndRun(File file) {
         System.out.println("Εκκίνηση Μεταγλώττισης...");
         try {
             // 1. Transpilation (ΓΛΩΣΣΑ -> Java)
@@ -16,15 +16,16 @@ public class ProgramRunner {
         } catch (TranspilationException e) {
             System.err.println("Συντακτικό σφάλμα");
             System.err.println(e.getMessage());
-            return;
+            return null;
         } catch (Exception e) {
             System.err.println("Εσωτερικό σφάλμα μεταγλώττισης");
+            DeveloperTools.showErrorWindow(e.getMessage());
         }
 
         String programName = GlwssaCLI.extractProgramName(file);
         if (programName == null) {
             System.err.println("ΣΦΑΛΜΑ: Δεν βρέθηκε η δήλωση 'ΠΡΟΓΡΑΜΜΑ [όνομα]' στο αρχείο.");
-            return;
+            return null;
         }
 
         File parentDir = file.getAbsoluteFile().getParentFile();
@@ -36,7 +37,7 @@ public class ProgramRunner {
         if (compiler == null) {
             System.err.println("ΣΦΑΛΜΑ: Δεν βρέθηκε ενσωματωμένος Java Compiler.");
             System.err.println("Βεβαιωθείτε ότι η εφαρμογή εκτελείται μέσω ενός πλήρους JDK (όπως το GraalVM) και όχι ενός απλού JRE.");
-            return;
+            return null;
         }
 
         // Execute compilation programmatically, routing outputs to our JavaFX console
@@ -44,20 +45,21 @@ public class ProgramRunner {
 
         if (javacStatus != 0) {
             System.err.println("ΣΦΑΛΜΑ: Αποτυχία μεταγλώττισης της Java (Κωδικός σφάλματος: " + javacStatus + ").");
-            return;
+            return null;
         }
 
         // Verify the bytecode was successfully generated
         File classFile = new File(buildDir, programName + ".class");
         if (!classFile.exists()) {
             System.err.println("ΣΦΑΛΜΑ: Το αρχείο .class δεν βρέθηκε στο " + classFile.getAbsolutePath());
-            return;
+            return null;
         }
 
         // 3. Execution (Running the Bytecode via Reflection)
         System.out.println("Εκτέλεση Προγράμματος:");
         runInCurrentJVM(buildDir, programName);
 
+        return javaFile;
     }
 
     public static void compileAndRunStepByStep(File file) {
@@ -82,6 +84,7 @@ public class ProgramRunner {
 
                 // Invoke main method. The array is cast to Object to prevent varargs unpacking exceptions.
                 mainMethod.invoke(null, (Object) new String[0]);
+                System.out.println("Program End");
             }
 
         } catch (ClassNotFoundException e) {

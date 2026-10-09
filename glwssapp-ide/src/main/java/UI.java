@@ -10,6 +10,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.Set;
 
 public class UI extends Application {
@@ -17,6 +18,7 @@ public class UI extends Application {
     private CodeArea codeArea;
     private InteractiveConsole consoleArea;
     private File currentFile;
+    private File currentJavaFile;
     private Stage primaryStage;
 
     @Override
@@ -29,7 +31,10 @@ public class UI extends Application {
                 "ΟΣΟ", "ΕΠΑΝΑΛΑΒΕ", "ΤΕΛΟΣ_ΕΠΑΝΑΛΗΨΗΣ",
                 "ΑΡΧΗ_ΕΠΑΝΑΛΗΨΗΣ", "ΜΕΧΡΙΣ_ΟΤΟΥ",
                 "ΓΙΑ", "ΑΠΟ", "ΜΕΧΡΙ", "ΜΕ_ΒΗΜΑ",
-                "ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ"
+                "ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ",
+                "ΣΥΝΑΡΤΗΣΗ", "ΤΕΛΟΣ_ΣΥΝΑΡΤΗΣΗΣ",
+                "ΔΙΑΔΙΚΑΣΙΑ", "ΤΕΛΟΣ_ΔΙΑΔΙΚΑΣΙΑΣ",
+                "ΚΑΛΕΣΕ", "ΑΚΕΡΑΙΑ", "ΠΡΑΓΜΑΤΙΚΗ", "ΛΟΓΙΚΗ"
         );
 
         this.primaryStage = stage;
@@ -86,6 +91,7 @@ public class UI extends Application {
         // 2. Setup Resizable Console Pane
         try {
             consoleArea = new InteractiveConsole();
+            consoleArea.setInputState(false);
         } catch (IOException e) {
             throw new RuntimeException("Failed to initialize console streams.", e);
         }
@@ -118,6 +124,7 @@ public class UI extends Application {
         runItem.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCodeCombination.SHORTCUT_DOWN));
         runItem.setOnAction(e -> {
             consoleArea.clearConsole();
+            consoleArea.setInputState(true);
 
             currentFile = Backend.saveFile(currentFile, primaryStage, codeArea);
             System.out.println("Auto Save");
@@ -126,9 +133,13 @@ public class UI extends Application {
             // Execute on a background thread to prevent UI freezing
             new Thread(() -> {
                 try {
-                    ProgramRunner.compileAndRun(currentFile);
+                    currentJavaFile = ProgramRunner.compileAndRun(currentFile);
                 }finally {
-                    runItem.setDisable(false);
+                    Platform.runLater(() -> {
+                        runItem.setDisable(false);
+                        System.out.println("\n--- Εκτέλεση Ολοκληρώθηκε ---");
+                        consoleArea.setInputState(false); // <-- LOCK CONSOLE
+                    });
                 }
             }).start();
         });
@@ -143,10 +154,17 @@ public class UI extends Application {
             }).start();
         });
 
+        Menu devOptionsMenu = new Menu("Developer Options");//todo remove for prod
+        MenuItem showJavaCode = new MenuItem("Show Generated Java Code");//todo remove for prod
+        showJavaCode.setOnAction(e -> {
+            DeveloperTools.showJavaCode(currentJavaFile);
+        });
+
         fileMenu.getItems().addAll(openItem, saveItem);
         runMenu.getItems().addAll(runItem, runStepByStep);
+        devOptionsMenu.getItems().addAll(showJavaCode);//todo remove for prod
 
-        menuBar.getMenus().addAll(fileMenu, runMenu);
+        menuBar.getMenus().addAll(fileMenu, runMenu, devOptionsMenu);
         root.setTop(menuBar);
 
         // 4. Display
@@ -166,10 +184,19 @@ public class UI extends Application {
      * Inner class representing the interactive terminal.
      * It redirects System.out/err to the TextArea and pipes user input to System.in.
      */
-    /*
+
     private static class InteractiveConsole extends TextArea {
         private int inputStart = 0;
         private final PipedOutputStream userOut;
+        private boolean isActive = false;
+
+        public void setInputState(boolean isActive)
+        {
+            Platform.runLater(() -> {
+                this.isActive = isActive;
+                this.setEditable(isActive); // Native JavaFX lock
+            });
+        }
 
         public InteractiveConsole() throws IOException {
             this.userOut = new PipedOutputStream();
@@ -181,29 +208,47 @@ public class UI extends Application {
             setStyle("-fx-font-family: 'Consolas', monospace; -fx-background-color: #2b2b2b; -fx-control-inner-background: #2b2b2b; -fx-text-fill: #a9b7c6; -fx-font-size: 14px;");
             setWrapText(true);
 
-            // Redirect System.out and System.err to this TextArea
-            PrintStream outStream = new PrintStream(new OutputStream() {
+            // A buffered OutputStream that prevents JavaFX thread starvation
+            OutputStream uiOut = new OutputStream() {
+                private final StringBuilder buffer = new StringBuilder();
+
                 @Override
                 public void write(int b) {
-                    Platform.runLater(() -> {
-                        appendText(String.valueOf((char) b));
-                        inputStart = getLength();
-                    });
+                    buffer.append((char) b);
+                    // Only flush to the UI when a line completes
+                    if (b == '\n') {
+                        flushToUI();
+                    }
                 }
+
                 @Override
                 public void write(byte[] b, int off, int len) {
+                    buffer.append(new String(b, off, len));
+                    flushToUI(); // Flush immediately for bulk writes
+                }
+
+                private void flushToUI() {
+                    String text = buffer.toString();
+                    buffer.setLength(0); // Clear the buffer
+
                     Platform.runLater(() -> {
-                        appendText(new String(b, off, len));
+                        appendText(text);
                         inputStart = getLength();
                     });
                 }
-            }, true);
+            };
+
+            PrintStream outStream = new PrintStream(uiOut, true);
             System.setOut(outStream);
             System.setErr(outStream);
 
             // Intercept keystrokes for the interactive prompt
             addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                // Prevent user from editing previous terminal output
+                if (! isActive)
+                {
+                    return;
+                }
+
                 if (getCaretPosition() < inputStart) {
                     positionCaret(getLength());
                 }
@@ -222,7 +267,15 @@ public class UI extends Application {
                         userOut.write((input + "\n").getBytes());
                         userOut.flush();
                     } catch (IOException ex) {
-                        ex.printStackTrace();
+                        // The subprocess has terminated and closed its input stream
+                        if (ex.getMessage().contains("Read end dead") || ex.getMessage().contains("Pipe closed")) {
+                            Platform.runLater(() -> {
+                                appendText("[Το πρόγραμμα έχει τερματίσει. Αδυναμία εισαγωγής δεδομένων.]\n");
+                                inputStart = getLength();
+                            });
+                        } else {
+                            ex.printStackTrace();
+                        }
                     }
                 }
             });
@@ -235,6 +288,4 @@ public class UI extends Application {
             });
         }
     }
-
-     */
 }
