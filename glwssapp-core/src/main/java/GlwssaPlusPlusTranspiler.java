@@ -404,64 +404,85 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     }
 
     @Override
-    public String visitSelect_stmnt(GlwssaParser.Select_stmntContext ctx)
-    {
+    public String visitSelect_stmnt(GlwssaParser.Select_stmntContext ctx) {
         StringBuilder selectCode = new StringBuilder();
 
-        String switchExpr = visit(ctx.expr());
+        String rawExpr = visit(ctx.expr()); // one time evaluation
+        String tempVar = "target_" + ctx.getStart().getLine();
+        selectCode.append("var ").append(tempVar).append(" = ").append(rawExpr).append(";\n");//let java decide what type the variable has with var
 
-        selectCode.append("switch ( " + switchExpr + " ) \n { \n");
+        boolean hasCases = ctx.case_block() != null && !ctx.case_block().isEmpty();
 
-        for ( GlwssaParser.Case_blockContext caseCtx : ctx.case_block())
-        {
-            selectCode.append(visit(caseCtx));
+        // create if else chain
+        if (hasCases) {
+            for (int i = 0; i < ctx.case_block().size(); i++) {
+                GlwssaParser.Case_blockContext caseCtx = ctx.case_block(i);
+                StringBuilder conditionBuilder = new StringBuilder();
+
+                for (int j = 0; j < caseCtx.case_item().size(); j++) {
+                    GlwssaParser.Case_itemContext itemCtx = caseCtx.case_item(j);
+
+                    if (j > 0) {
+                        conditionBuilder.append(" || ");
+                    }
+
+                    if (itemCtx.op != null) {
+                        // the case has an operator
+                        String operator = itemCtx.op.getText();
+                        String value = visit(itemCtx.expr(0));
+                        conditionBuilder.append("(")
+                                .append(tempVar).append(" ").append(operator).append(" ").append(value)
+                                .append(")");
+                    }
+                    else if (itemCtx.DOTDOT() != null) {
+                        // range
+                        String lowerBound = visit(itemCtx.expr(0));
+                        String upperBound = visit(itemCtx.expr(1));
+                        conditionBuilder.append("(")
+                                .append(tempVar).append(" >= ").append(lowerBound)
+                                .append(" && ")
+                                .append(tempVar).append(" <= ").append(upperBound)
+                                .append(")");
+                    }
+                    else {
+                        // value
+                        String value = visit(itemCtx.expr(0));
+                        conditionBuilder.append("(")
+                                .append(tempVar).append(" == ").append(value)
+                                .append(")");
+                    }
+                }
+
+                // is if or else
+                if (i == 0) {
+                    selectCode.append("if (").append(conditionBuilder).append(") {\n");
+                } else {
+                    selectCode.append("else if (").append(conditionBuilder).append(") {\n");
+                }
+
+                for (GlwssaParser.StatementContext stmntCtx : caseCtx.statement()) {
+                    selectCode.append(visit(stmntCtx)).append("\n");
+                }
+                selectCode.append("}\n");
+            }
         }
 
-        if ( ctx.default_block() != null )
-        {
-            selectCode.append(visit(ctx.default_block()));
-        }
+        // 3. Χειρισμός του ΠΕΡΙΠΤΩΣΗ ΑΛΛΙΩΣ
+        if (ctx.default_block() != null) {
+            if (hasCases) {
+                selectCode.append("else {\n");
+            } else {
+                // Σπάνια περίπτωση: Η ΕΠΙΛΕΞΕ έχει μόνο ΠΕΡΙΠΤΩΣΗ ΑΛΛΙΩΣ
+                selectCode.append("{\n");
+            }
 
-        selectCode.append("} \n");
+            for (GlwssaParser.StatementContext stmntCtx : ctx.default_block().statement()) {
+                selectCode.append(visit(stmntCtx)).append("\n");
+            }
+            selectCode.append("}\n");
+        }
 
         return selectCode.toString();
-    }
-
-    public String visitCase_block( GlwssaParser.Case_blockContext ctx )
-    {
-        StringBuilder caseBlockCode = new StringBuilder();
-
-        for ( GlwssaParser.ExprContext caseExprCtx : ctx.expr())
-        {
-            String caseValue = visit(caseExprCtx);
-
-            caseBlockCode.append("case " + caseValue + ":\n");
-        }
-
-        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement())
-        {
-            caseBlockCode.append(visit(stmntCtx) + "\n");
-        }
-
-        caseBlockCode.append("break;\n");
-
-        return caseBlockCode.toString();
-    }
-
-    @Override
-    public String visitDefault_block ( GlwssaParser.Default_blockContext ctx)
-    {
-        StringBuilder defaultCodeBlock = new StringBuilder();
-
-        defaultCodeBlock.append("default: \n");
-
-        for ( GlwssaParser.StatementContext stmntCtx : ctx.statement() )
-        {
-            defaultCodeBlock.append(visit(stmntCtx) + "\n");
-        }
-        defaultCodeBlock.append("break;");
-
-        return defaultCodeBlock.toString();
     }
 
     @Override

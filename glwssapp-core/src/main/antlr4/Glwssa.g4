@@ -64,10 +64,14 @@ else_if_block : ELSE_IF_KW expr THEN_KW statement* ;
 
 else_block : ELSE_KW statement* ;
 
-// 9. Select Staments (Switch in java)
-select_stmnt : SELECT_KW expr case_block* default_block? END_SELECT_KW ;
+// 9. Select Statements (Switch in java deprecated. From now on we use if statements)
+select_stmnt : SELECT_KW expr (case_block+ default_block? | default_block) END_SELECT_KW ;
 
-case_block : CASE_KW expr (',' expr)* statement* ;
+case_block : CASE_KW case_item (',' case_item)* statement* ;
+
+case_item : op=(LT | GT | LTE | GTE | EQ | NEQ) expr
+          | expr (DOTDOT expr)?
+          ;
 
 default_block : CASE_KW ELSE_KW statement* ;
 
@@ -164,6 +168,7 @@ LT         : '<' ;
 GT         : '>' ;
 LTE        : '<=' ;
 GTE        : '>=' ;
+DOTDOT : '..' ;
 
 // Program/Variable naming rules
 ID : [a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9_]*;
