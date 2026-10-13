@@ -9,12 +9,12 @@ import java.net.URLClassLoader;
 public class ProgramRunner {
 
     public static File compileAndRun(File file) {
-        System.out.println("Εκκίνηση Μεταγλώττισης...");
+        //System.out.println("Εκκίνηση Μεταγλώττισης...");
         try {
             // 1. Transpilation (ΓΛΩΣΣΑ -> Java)
             GlwssaPlusPlusCompiler.compile(file.getAbsolutePath());
         } catch (TranspilationException e) {
-            System.err.println("Συντακτικό σφάλμα");
+            System.err.println("Συντακτικό σφάλμα");//todo show where we have syntax errors
             System.err.println(e.getMessage());
             return null;
         } catch (Exception e) {
@@ -56,7 +56,7 @@ public class ProgramRunner {
         }
 
         // 3. Execution (Running the Bytecode via Reflection)
-        System.out.println("Εκτέλεση Προγράμματος:");
+        //System.out.println("Εκτέλεση Προγράμματος:");
         runInCurrentJVM(buildDir, programName);
 
         return javaFile;
@@ -84,7 +84,7 @@ public class ProgramRunner {
 
                 // Invoke main method. The array is cast to Object to prevent varargs unpacking exceptions.
                 mainMethod.invoke(null, (Object) new String[0]);
-                System.out.println("Program End");
+                //System.out.println("Program End");
             }
 
         } catch (ClassNotFoundException e) {

@@ -73,7 +73,7 @@ public class GlwssaPlusPlusCompiler
                 absoluteOutputPath
         );
 
-        System.out.println("Compilation Successful. Generated " + absoluteOutputPath);
+        //System.out.println("Compilation Successful. Generated " + absoluteOutputPath);
 
         return outputFile;
     }

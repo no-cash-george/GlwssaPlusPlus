@@ -127,7 +127,7 @@ public class UI extends Application {
             consoleArea.setInputState(true);
 
             currentFile = Backend.saveFile(currentFile, primaryStage, codeArea);
-            System.out.println("Auto Save");
+            //System.out.println("Auto Save");
             runItem.setDisable(true);
 
             // Execute on a background thread to prevent UI freezing
@@ -137,7 +137,7 @@ public class UI extends Application {
                 }finally {
                     Platform.runLater(() -> {
                         runItem.setDisable(false);
-                        System.out.println("\n--- Εκτέλεση Ολοκληρώθηκε ---");
+                        //System.out.println("\n--- Εκτέλεση Ολοκληρώθηκε ---");
                         consoleArea.setInputState(false); // <-- LOCK CONSOLE
                     });
                 }
