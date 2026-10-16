@@ -27,5 +27,5 @@
 
 .typeIndicator
 {
-    -fx-font-style: bold;
+    -fx-font-weight: bold;
 }

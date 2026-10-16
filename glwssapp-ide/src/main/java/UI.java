@@ -37,6 +37,11 @@ public class UI extends Application {
                 "ΚΑΛΕΣΕ", "ΑΚΕΡΑΙΑ", "ΠΡΑΓΜΑΤΙΚΗ", "ΛΟΓΙΚΗ"
         );
 
+        Set<String> VARIABLETYPES = Set.of(
+                "ΑΚΕΡΑΙΕΣ", "ΠΡΑΓΜΑΤΙΚΕΣ",
+                "ΧΑΡΑΚΤΗΡΕΣ", "ΛΟΓΙΚΕΣ"
+        );
+
         this.primaryStage = stage;
         BorderPane root = new BorderPane();
 
@@ -70,12 +75,27 @@ public class UI extends Application {
 
                     if (startOfWord < endOfWord) {
                         String word = fullText.substring(startOfWord, endOfWord);
+                        boolean notTypeDec = false;
 
                         for (String kw : KEYWORDS) {
                             if (kw.equalsIgnoreCase(word) && !kw.equals(word)) {
                                 codeArea.replaceText(startOfWord, endOfWord, kw);
                                 codeArea.moveTo(currentCaret);
+                                notTypeDec = true;
                                 break;
+                            }
+                        }
+
+                        if(notTypeDec)
+                        {
+                            for(String kwvar : VARIABLETYPES)
+                            {
+                                if (kwvar.equalsIgnoreCase(word) && !kwvar.equals(word))
+                                {
+                                    codeArea.replaceText(startOfWord, endOfWord, kwvar + ":");
+                                    codeArea.moveTo(++currentCaret);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -105,6 +125,7 @@ public class UI extends Application {
 
         // 3. Setup Menus
         MenuBar menuBar = new MenuBar();
+        menuBar.setUseSystemMenuBar(true);
         Menu fileMenu = new Menu("File");
         Menu runMenu = new Menu("Run");
 
