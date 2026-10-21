@@ -14,15 +14,21 @@ public class Utils
     public static String getDefaultValue(String javaType) {
         return switch (javaType) {
             case "int" -> "0";
-            case "float" -> "0.0f";
+            case "double" -> "0.0f";
             case "boolean" -> "false";
             case "String" -> "\"\"";
             default -> "null";
         };
     }
 
-    public static String toGreeklish(String greekText)
-    {
+    public static String toGreeklish(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+
+        // 1. Ελέγχουμε αν το αρχικό κείμενο περιέχει ελληνικούς χαρακτήρες
+        boolean containsGreek = text.matches(".*[α-ωΑ-Ω].*");
+
         String[][] map = {
                 {"α", "a"}, {"β", "v"}, {"γ", "g"}, {"δ", "d"}, {"ε", "e"},
                 {"ζ", "z"}, {"η", "i"}, {"θ", "th"}, {"ι", "i"}, {"κ", "k"},
@@ -36,11 +42,17 @@ public class Utils
                 {"Φ", "F"}, {"Χ", "X"}, {"Ψ", "PS"}, {"Ω", "O"}
         };
 
+        String result = text;
         for (String[] pair : map) {
-            greekText = greekText.replace(pair[0], pair[1]);
+            result = result.replace(pair[0], pair[1]);
         }
 
-        return greekText;
+        // 2. Αν ήταν εξ αρχής ελληνικό, προσθέτουμε πρόθεμα για αποφυγή σύγκρουσης
+        if (containsGreek) {
+            return "greek_" + result;
+        }
+
+        return result;
     }
 
     public static File writeArrayListToFile(ArrayList<String> lines, String filename) {

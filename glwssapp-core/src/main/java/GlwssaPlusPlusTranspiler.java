@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +9,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
     private Map<String, String> symbolTable = new HashMap<>();
     private Map<String, String> symbolTableSubroutines = new HashMap<>();
+    private Map<String, String> subprogramNameTable = new HashMap<>();
     private boolean inSubprogram = false;
 
     @Override
@@ -18,6 +20,11 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder mainCode = new StringBuilder();// inside here we will put the translated java code
 
         mainCode.append("public static void main (String[] args) \n{\n");
+
+        if (ctx.const_declarations() != null)
+        {
+            mainCode.append(visit(ctx.const_declarations()));
+        }
 
         if (ctx.declarations() != null)
         {
@@ -53,7 +60,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         fileCode.append("\n}\n" +
                 "class RefInt { public int value; public RefInt(int v) { this.value = v; } }\n" +
-                "class RefFloat { public float value; public RefFloat(float v) { this.value = v; } }\n" +
+                "class RefDouble { public double value; public RefDouble(double v) { this.value = v; } }\n" +
                 "class RefBoolean { public boolean value; public RefBoolean(boolean v) { this.value = v; } }\n" +
                 "class RefString { public String value; public RefString(String v) { this.value = v; } }");
 
@@ -93,6 +100,18 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         for (GlwssaParser.Var_defContext varDefCtx : ctx.var_def())
         {
             String varName = Utils.toGreeklish(varDefCtx.ID().getText());
+
+            boolean alreadyExists;
+            if (inSubprogram) {
+                alreadyExists = symbolTableSubroutines.containsKey(varName);
+            } else {
+                alreadyExists = symbolTable.containsKey(varName);
+            }
+
+            if (alreadyExists) {
+                // Το μήνυμα παραμένει ουδέτερο, καθώς καλύπτει τόσο σταθερές όσο και διπλο-δηλωμένες μεταβλητές
+                throw new TranspilationException("Το αναγνωριστικό '" + varName + "' έχει ήδη δηλωθεί.");
+            }
 
             // 1. Ελέγχουμε αν έχει διαστάσεις (Πίνακας)
             if (varDefCtx.NUMBER() != null && !varDefCtx.NUMBER().isEmpty())
@@ -134,10 +153,49 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     }
 
     @Override
+    public String visitConst_declarations(GlwssaParser.Const_declarationsContext ctx)
+    {
+        StringBuilder declarations = new StringBuilder();
+
+        for (GlwssaParser.Const_declContext constDeclCtx : ctx.const_decl())
+        {
+            declarations.append(visit(constDeclCtx));
+        }
+
+        return declarations.toString();
+    }
+
+    @Override
+    public String visitConst_decl(GlwssaParser.Const_declContext ctx)
+    {
+        String varName = Utils.toGreeklish(ctx.ID().getText());
+        String valueExpr = visit(ctx.expr()); //εξαγωγή τιμής
+
+        // πολύ απλό type inference τιμής αρχικοποίησης
+        String javaBaseType = "int"; // Προεπιλογή
+        if (valueExpr.startsWith("\"")) {
+            javaBaseType = "String";
+        } else if (valueExpr.equals("true") || valueExpr.equals("false")) {
+            javaBaseType = "boolean";
+        } else if (valueExpr.contains(".")) {
+            javaBaseType = "double";
+        }
+
+        // Καταγραφή στο σωστό εύρος
+        if (inSubprogram) {
+            symbolTableSubroutines.put(varName, javaBaseType);
+        } else {
+            symbolTable.put(varName, javaBaseType);
+        }
+
+        // Παραγωγή Java κώδικα με χρήση του 'final var' για απόλυτη συμβατότητα
+        return "final var " + varName + " = " + valueExpr + ";\n";
+    }
+
+    @Override
     public String visitAssignment(GlwssaParser.AssignmentContext ctx)
     {
         String target;
-        boolean addFloatCast = false;
 
         // Check assignment target
         if ( ctx.ID() != null )
@@ -147,19 +205,15 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
             if ( type != null && type.startsWith("Ref") )
             {
-                if ( type.startsWith("RefFloat") || type.startsWith("float") )
-                {
-                    addFloatCast = true;
-                }
                 target = varName + ".value";
             }else
             {
-                if ( type != null && type.startsWith("float") )
-                {
-                    addFloatCast = true;
-                }
-
                 target = varName;
+            }
+
+            if (resolveVariableType(varName) == null)
+            {
+                throw new TranspilationException("Η μεταβλητή " + ctx.ID().getText() + " δεν υπάρχει");
             }
         }else // if ID is null then the target is an array
         {
@@ -167,13 +221,6 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         }
 
         String expression = visit(ctx.expr());
-
-        if (addFloatCast)
-        {
-            System.out.println("FLOAT!!!!!!!!!!!!");
-            return target + " = " + expression + " ;";
-        }
-
         return target + " = " + expression + " ;";
     }
 
@@ -216,6 +263,10 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         if (operator.equals("MOD"))
         {
             operator = "%";
+        }
+        if (operator.equals("POW"))
+        {
+            return "Math.pow(" + left + ", " + right + ");";
         }
 
         return left + " " + operator + " " + right;
@@ -312,7 +363,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 target = target + ".value";
                 javaType = switch (javaType) {
                     case "RefInt" -> "int";
-                    case "RefFloat" -> "float";
+                    case "RefDouble" -> "double";
                     case "RefBoolean" -> "boolean";
                     case "RefString" -> "String";
                     default -> "String";
@@ -321,11 +372,11 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
             String chosenScannerMethod = switch (javaType) {
                 case "int" -> "nextInt()";
-                case "float" -> "nextFloat()";
+                case "double" -> "nextDouble()";
                 case "boolean" -> "nextBoolean()";
                 case "String" -> "next()";
                 case "int[]" -> "nextInt()";
-                case "float[]" -> "nextFloat()";
+                case "double[]" -> "nextDouble()";
                 case "boolean[]" -> "nextBoolean()";
                 case "String[]" -> "next()";
                 default -> "next()";
@@ -540,7 +591,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String step = (ctx.expr().size() == 3) ? visit(ctx.expr(2)) : "1";
 
         try {
-            float stepFloat = Float.parseFloat(step);
+            double stepFloat = Double.parseDouble(step);
 
             forCode.append("for ( " + iter + " = " + start + "; ");
 
@@ -551,7 +602,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             }
 
             for (GlwssaParser.StatementContext stmntCtx : ctx.statement()) {
-                forCode.append(visit(stmntCtx) + "; \n");
+                forCode.append(visit(stmntCtx) + "\n");
             }
 
             forCode.append("\n}");
@@ -590,6 +641,11 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String arrayName = Utils.toGreeklish(ctx.ID().getText());
         arrayAccessCode.append(arrayName);
 
+        if (!symbolTable.containsKey(arrayName))
+        {
+            throw new TranspilationException("Δεν υπάρχει πίνακας με όνομα " + ctx.ID().getText());
+        }
+
         for ( GlwssaParser.ExprContext exprContext : ctx.expr() )
         {
             String indexName = visit( exprContext );
@@ -603,26 +659,40 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     @Override
     public String visitFunctionCallExpr(GlwssaParser.FunctionCallExprContext ctx)
     {
-        StringBuilder functionCallCode = new StringBuilder();
+        String rawFunctionName = ctx.ID().getText();
 
-        String functionName = Utils.toGreeklish(ctx.ID().getText());
-        functionCallCode.append(functionName + "( ");
-
-        if ( ctx.expr() != null && !ctx.expr().isEmpty() )
+        // 1. Μετάφραση των ορισμάτων της συνάρτησης
+        List<String> args = new ArrayList<>();
+        if (ctx.expr() != null && !ctx.expr().isEmpty())
         {
-            for ( int i = 0; i < ctx.expr().size(); i++ )
+            for (GlwssaParser.ExprContext exprCtx : ctx.expr())
             {
-               functionCallCode.append(visit(ctx.expr(i)));
-
-               if ( i < ctx.expr().size() - 1 )
-               {
-                   functionCallCode.append(", ");
-               }
+                args.add(visit(exprCtx));
             }
         }
-        functionCallCode.append(" )");
+        String joinedArgs = String.join(", ", args);
 
-        return functionCallCode.toString();
+        // 2. Έλεγχος αν πρόκειται για ενσωματωμένη συνάρτηση της ΓΛΩΣΣΑΣ
+        return switch (rawFunctionName) {
+            case "Α_Μ"  -> "(int) Math.floor(" + joinedArgs + ")"; // Casting σε int για το ακέραιο μέρος
+            case "Α_Τ" -> "Math.abs(" + joinedArgs + ")";
+            case "Τ_Ρ" -> "Math.sqrt(" + joinedArgs + ")";
+            case "Ε" -> "Math.exp(" + joinedArgs + ")";
+            case "ΗΜ"  -> "Math.sin(" + joinedArgs + ")";
+            case "ΣΥΝ" -> "Math.cos(" + joinedArgs + ")";
+            case "ΕΦ"  -> "Math.tan(" + joinedArgs + ")";
+            case "ΛΟΓ" -> "Math.log(" + joinedArgs + ")";
+            default    -> {
+                // Custom συνάρτηση χρήστη: μετατροπή του ονόματος σε greeklish
+                String greeklishName = Utils.toGreeklish(rawFunctionName);
+                if (!subprogramNameTable.containsKey(greeklishName))
+                {
+                    throw new TranspilationException("Δεν υπάρχει συνάρτηση με όνομα " + rawFunctionName);
+                }
+
+                yield greeklishName + "(" + joinedArgs + ")";
+            }
+        };
     }
 
     @Override
@@ -635,10 +705,17 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String functionName = Utils.toGreeklish(ctx.ID().getText());
         String glwssaReturnType = ctx.RETURN_TYPE_KW().getText();
 
+        if (subprogramNameTable.containsKey(functionName))
+        {
+            throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(functionName) + " με όνομα " + functionName);
+        }
+
+        subprogramNameTable.put(functionName, "συνάρτηση");
+
         String javaReturnType = switch (glwssaReturnType)
         {
             case "ΑΚΕΡΑΙΑ" -> "int";
-            case "ΠΡΑΓΜΑΤΙΚΗ" -> "float";
+            case "ΠΡΑΓΜΑΤΙΚΗ" -> "double";
             case "ΛΟΓΙΚΗ" -> "boolean";
             case "ΧΑΡΑΚΤΗΡΑΣ" -> "String";
             default -> "Object";
@@ -653,7 +730,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 String javaType = switch (typeKW)
                 {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
-                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
                     case "ΛΟΓΙΚΕΣ:" -> "boolean";
                     case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
                     default -> "Object";
@@ -754,6 +831,15 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder procedureCode = new StringBuilder();
         String procedureName = Utils.toGreeklish(ctx.ID().getText());
 
+
+        if (subprogramNameTable.containsKey(procedureName))
+        {
+            throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(procedureName) + " με όνομα " + procedureName);
+        }
+
+        subprogramNameTable.put(procedureName, "διαδικασία");
+
+
         Map<String, String> declaredTypes = new HashMap<>();
 
         if (ctx.declarations() != null)
@@ -764,7 +850,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                 String javaType = switch (typeKW)
                 {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
-                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
                     case "ΛΟΓΙΚΕΣ:" -> "boolean";
                     case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
                     default -> "Object";
@@ -869,6 +955,16 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder callCode = new StringBuilder();
         String procName = Utils.toGreeklish(ctx.ID().getText());
 
+        if (!subprogramNameTable.containsKey(procName))
+        {
+            throw new TranspilationException("Δεν υπάρχει διαδικασία με όνομα '" + ctx.ID().getText() + "'.");
+        }
+
+        if ("συνάρτηση".equals(subprogramNameTable.get(procName)))
+        {
+            throw new TranspilationException("Η συνάρτηση '" + ctx.ID().getText() + "' δεν μπορεί να κληθεί με την εντολή ΚΑΛΕΣΕ.");
+        }
+
         callCode.append(procName).append("(");
 
         if (ctx.expr() != null && !ctx.expr().isEmpty())
@@ -907,7 +1003,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     {
         return switch (javaType) {
             case "int" -> "RefInt";
-            case "float" -> "RefFloat";
+            case "double" -> "RefDouble";
             case "boolean" -> "RefBoolean";
             case "String" -> "RefString";
             default -> "RefObject";

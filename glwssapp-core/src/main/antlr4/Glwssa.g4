@@ -5,7 +5,7 @@ file : program subprogram* EOF ;
 // Glwssa Parser Rules
 
 // 1. The program must have a name variables a start statements and an end
-program : PROGRAM_KW ID declarations? START_KW statement* END_KW ;
+program : PROGRAM_KW ID const_declarations? declarations? START_KW statement* END_KW ;
 
 // 1.1 Procedures and Functions
 subprogram : function | procedure ;
@@ -26,11 +26,13 @@ procedure : PROCEDURE_KW ID '(' param_list? ')'
 
 param_list : ID (',' ID)* ;
 
-// 2. Variable Declaration Block: Starts with "ΜΕΤΑΒΛΗΤΕΣ" followed by >=0 declarations
+// 2. Variable & Constant Declaration Block: Starts with "ΜΕΤΑΒΛΗΤΕΣ" (or "ΣΤΑΘΕΡΕΣ") followed by >=0 declarations
 declarations : VARS_KW var_decl* ;
+const_declarations : CONST_KW const_decl*;
 
-// 3. A single declaration
+// 3. A single declaration (Variable or Constant)
 var_decl : TYPE_KW var_def (',' var_def)* ;
+const_decl : ID EQ expr;
 
 var_def : ID
         | ID '[' NUMBER (',' NUMBER)* ']';
@@ -92,6 +94,7 @@ procedure_call_statement : CALL_KW ID '(' (expr (',' expr)*)? ')' ;
 
 // Expressions
 expr : MINUS expr                                    # UnaryMinusExpr
+     | expr op=POW expr                              # MathExpr
      | expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | expr op=(PLUS | MINUS) expr                   # MathExpr
      | expr op=(EQ | NEQ | LT | GT | LTE | GTE) expr # RelationalExpr
@@ -110,6 +113,7 @@ expr : MINUS expr                                    # UnaryMinusExpr
 PROGRAM_KW : 'ΠΡΟΓΡΑΜΜΑ' ;
 
 VARS_KW    : 'ΜΕΤΑΒΛΗΤΕΣ' ;
+CONST_KW   : 'ΣΤΑΘΕΡΕΣ';
 
 START_KW   : 'ΑΡΧΗ' ;
 END_KW     : 'ΤΕΛΟΣ_ΠΡΟΓΡΑΜΜΑΤΟΣ' ;
@@ -155,20 +159,21 @@ TRUE_KW    : 'ΑΛΗΘΗΣ' ;
 FALSE_KW   : 'ΨΕΥΔΗΣ' ;
 
 // Operators
-ASSIGN     : '<-' ;
-PLUS       : '+' ;
-MINUS      : '-' ;
-MULT       : '*' ;
-SLASH      : '/' ;
+ASSIGN     : '<-'  ;
+POW        : '^'   ;
+PLUS       : '+'   ;
+MINUS      : '-'   ;
+MULT       : '*'   ;
+SLASH      : '/'   ;
 DIV_KW     : 'DIV' ;
 MOD_KW     : 'MOD' ;
-EQ         : '=' ;
-NEQ        : '<>' ;
-LT         : '<' ;
-GT         : '>' ;
-LTE        : '<=' ;
-GTE        : '>=' ;
-DOTDOT : '..' ;
+EQ         : '='   ;
+NEQ        : '<>'  ;
+LT         : '<'   ;
+GT         : '>'   ;
+LTE        : '<='  ;
+GTE        : '>='  ;
+DOTDOT : '..'      ;
 
 // Program/Variable naming rules
 ID : [a-zA-Zα-ωΑ-Ω][a-zA-Zα-ωΑ-Ω0-9_]*;
