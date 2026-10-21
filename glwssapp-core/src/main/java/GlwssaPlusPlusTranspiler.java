@@ -110,7 +110,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
             if (alreadyExists) {
                 // Το μήνυμα παραμένει ουδέτερο, καθώς καλύπτει τόσο σταθερές όσο και διπλο-δηλωμένες μεταβλητές
-                throw new TranspilationException("Το αναγνωριστικό '" + varName + "' έχει ήδη δηλωθεί.");
+                throw new TranspilationException("Το αναγνωριστικό '" + varDefCtx.ID().getText() + "' έχει ήδη δηλωθεί.");
             }
 
             // 1. Ελέγχουμε αν έχει διαστάσεις (Πίνακας)
@@ -707,7 +707,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         if (subprogramNameTable.containsKey(functionName))
         {
-            throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(functionName) + " με όνομα " + functionName);
+            throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(functionName) + " με όνομα " + ctx.ID().getText());
         }
 
         subprogramNameTable.put(functionName, "συνάρτηση");
@@ -834,7 +834,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         if (subprogramNameTable.containsKey(procedureName))
         {
-            throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(procedureName) + " με όνομα " + procedureName);
+            throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(procedureName) + " με όνομα " + ctx.ID().getText());
         }
 
         subprogramNameTable.put(procedureName, "διαδικασία");
