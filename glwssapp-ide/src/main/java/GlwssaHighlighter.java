@@ -95,6 +95,11 @@ public class GlwssaHighlighter {
                 case GlwssaLexer.GTE:
                     return "operator";
 
+                case GlwssaLexer.AND:
+                case GlwssaLexer.OR:
+                case GlwssaLexer.NOT:
+                    return "logic-op";
+
                 // Primitives
                 case GlwssaLexer.NUMBER:
                     return "number";

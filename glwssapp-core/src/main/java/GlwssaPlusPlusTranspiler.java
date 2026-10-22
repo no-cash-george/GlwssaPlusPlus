@@ -51,12 +51,50 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         fileCode.append( "import java.util.Scanner;\n\n" +
                             "public class " + programName + "\n{\n\n" +
                             "static Scanner scanner = new Scanner(System.in);\n\n");
-        fileCode.append(visit(ctx.program()));
 
         for ( GlwssaParser.SubprogramContext subPrCtx : ctx.subprogram() )
         {
             fileCode.append(visit(subPrCtx));
         }
+
+        fileCode.append(visit(ctx.program()));
+
+        //the bellow function injected in my code fixes issues #7 and #11. More in commit description
+        fileCode.append("""
+            
+            public static void __print(Object... args) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < args.length; i++) {
+                    Object current = args[i];
+                    
+                    // 1. Format Booleans
+                    if (current instanceof Boolean) {
+                        sb.append((Boolean) current ? "ΑΛΗΘΗΣ" : "ΨΕΥΔΗΣ");
+                    } 
+                    // 2. Format Reals (Strip .0 and use Greek comma)
+                    else if (current instanceof Float || current instanceof Double) {
+                        String numStr = current.toString();
+                        if (numStr.endsWith(".0")) {
+                            numStr = numStr.substring(0, numStr.length() - 2);
+                        }
+                        sb.append(numStr.replace('.', ','));
+                    } 
+                    // 3. Format Strings & Integers
+                    else {
+                        sb.append(current);
+                    }
+                    
+                    // 4. Alki Spacing Logic: Space ONLY between two numbers
+                    if (i < args.length - 1) {
+                        Object next = args[i + 1];
+                        if (current instanceof Number && next instanceof Number) {
+                            sb.append(" ");
+                        }
+                    }
+                }
+                System.out.println(sb.toString());
+            }
+        """);
 
         fileCode.append("\n}\n" +
                 "class RefInt { public int value; public RefInt(int v) { this.value = v; } }\n" +
@@ -227,12 +265,13 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     @Override
     public String visitPrint_stmnt(GlwssaParser.Print_stmntContext ctx)
     {
-        // Collect all items to print, join them with a "+" for Java's System.out.println
+        // Deprecated -> Collect all items to print, join them with a "+" for Java's System.out.println
+        // Collect all items to print, join them with a "," for my custom print method.
         String printContent = ctx.print_item().stream()
                 .map(this::visit)
-                .collect(Collectors.joining(" + \" \" + ")); // Add a space between variables
+                .collect(Collectors.joining(", "));
 
-        return "System.out.println(" + printContent + ");";
+        return "__print(" + printContent + ");";
     }
 
     @Override
@@ -264,12 +303,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         {
             operator = "%";
         }
-        if (operator.equals("POW"))
+        if (operator.equals("^"))
         {
-            return "Math.pow(" + left + ", " + right + ");";
+            return "Math.pow(" + left + ", " + right + ")";
         }
 
-        return left + " " + operator + " " + right;
+        return "( " + left + " " + operator + " " + right + " )";
     }
 
     @Override
@@ -279,16 +318,33 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String right = visit(ctx.expr(1));
         String operator = ctx.op.getText();
 
+        boolean isStringComparison = isStringType(ctx.expr(0)) || isStringType(ctx.expr(1));
+
+        if (isStringComparison) {
+            if (operator.equals("="))
+            {
+                return "(" + left + ".equals(" + right + "))";
+            }
+            else if (operator.equals("<>"))
+            {
+                return "(!" + left + ".equals(" + right + "))";
+            }
+            else
+            {
+                throw new TranspilationException("Δεν επιτρέπεται η χρήση του τελεστή '" + operator + "' σε μεταβλητές τύπου ΧΑΡΑΚΤΗΡΕΣ. Η σύγκριση επιτρέπεται μόνο με '=' και '<>'.");
+            }
+        }
+
         if (operator.equals("="))
         {
             operator = "==";
         }
-        if (operator.equals("<>"))
+        else if (operator.equals("<>"))
         {
             operator = "!=";
         }
 
-        return left + " " + operator + " " + right;
+        return "(" + left + " " + operator + " " + right + ")";
     }
 
     @Override
@@ -989,6 +1045,34 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         return "- " + visit(ctx.expr());
     }
 
+    @Override
+    public String visitNotExpr(GlwssaParser.NotExprContext ctx )
+    {
+        return "!(" + visit(ctx.expr()) + ")";
+    }
+
+    @Override
+    public String visitLogicExpr(GlwssaParser.LogicExprContext ctx) {
+        String left = visit(ctx.expr(0));
+        String right = visit(ctx.expr(1));
+        String operator = ctx.op.getText();
+
+        if (operator.equals("ΚΑΙ")) {
+            operator = "&&";
+        } else if (operator.equals("Η")) {
+            operator = "||";
+        }
+
+        // Return without a trailing semicolon, as this is an expression
+        return "( " + left + " " + operator + " " + right + " )";
+    }
+
+    @Override
+    public String visitStringExpr(GlwssaParser.StringExprContext ctx) {
+        // Επιστρέφει το κείμενο ακριβώς όπως γράφτηκε, μαζί με τα εισαγωγικά του
+        return ctx.STRING().getText();
+    }
+
     private String resolveVariableType ( String varName )
     {
         if( inSubprogram && symbolTableSubroutines.containsKey(varName) )
@@ -1008,5 +1092,26 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             case "String" -> "RefString";
             default -> "RefObject";
         };
+    }
+
+    private boolean isStringType(GlwssaParser.ExprContext exprCtx) {
+        if (exprCtx instanceof GlwssaParser.ParenExprContext) {
+            return isStringType(((GlwssaParser.ParenExprContext) exprCtx).expr());//recursion YEAH
+        }
+
+        if (exprCtx instanceof GlwssaParser.IdExprContext) {
+            String varName = Utils.toGreeklish(((GlwssaParser.IdExprContext) exprCtx).ID().getText());
+            String type = resolveVariableType(varName);
+            return type != null && type.contains("String");
+        }
+
+        if (exprCtx instanceof GlwssaParser.ArrayExprContext) {
+            String arrayName = Utils.toGreeklish(((GlwssaParser.ArrayExprContext) exprCtx).array_access().ID().getText());
+            String type = resolveVariableType(arrayName);
+            return type != null && type.contains("String");
+        }
+
+        String text = exprCtx.getText();
+        return text.startsWith("\"") || text.startsWith("'");
     }
 }

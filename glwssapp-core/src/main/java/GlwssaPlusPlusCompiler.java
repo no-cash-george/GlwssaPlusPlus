@@ -6,29 +6,11 @@ import java.util.Scanner;
 
 public class GlwssaPlusPlusCompiler
 {
-    @Deprecated
-    public static void main(String[] args)
-    {
-        System.out.println("Give me the file's absolute path:");
-        Scanner input = new Scanner(System.in);
-        String filePath = input.nextLine().strip();
-        input.close();
-
-        try
-        {
-            compile(filePath);
-        }catch (Exception e)
-        {
-            System.err.println("CRITICAL COMPILER ERROR: " + e.getMessage());
-        }
-    }
-
     public static File compile(String filePath) throws java.io.IOException {
         File srcFile = new File(filePath);
 
         if (!srcFile.exists()) {
-            System.err.println("ERROR: File not found.");
-            return null; // Stops here, no exception thrown
+            throw new TranspilationException("File not found.");
         }
 
         // 1. Read characters and output Tokens
@@ -46,8 +28,7 @@ public class GlwssaPlusPlusCompiler
 
         // If the Lexer or Parser found bad syntax, stop BEFORE transpiling
         if (parser.getNumberOfSyntaxErrors() > 0) {
-            System.err.println("ERROR: Syntax errors found in Glossa code. Compilation aborted.");
-            return null;
+            throw new TranspilationException("Bad syntax. Compilation aborted.");
         }
         // ----------------------
 

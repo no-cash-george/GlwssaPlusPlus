@@ -20,6 +20,11 @@
     -fx-fill: #808080;
 }
 
+.logic-op {
+    -fx-fill: #ff6b68;
+    -fx-font-weight: bold;
+}
+
 .comment {
     -fx-fill: #808080;
     -fx-font-style: italic;

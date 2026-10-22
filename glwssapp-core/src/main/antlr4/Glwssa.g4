@@ -12,14 +12,14 @@ subprogram : function | procedure ;
 
 // 1.1.1 Function has both input and output
 function : FUNCTION_KW ID '(' param_list? ')' ':' RETURN_TYPE_KW
-            declarations
+            declarations?
             START_KW
                 statement*
             END_FUNCTION_KW ;
 
 // 1.1.2 Procedure has only input ( pass by referance )
 procedure : PROCEDURE_KW ID '(' param_list? ')'
-            declarations
+            declarations?
             START_KW
                 statement*
             END_PROCEDURE_KW ;
@@ -94,6 +94,8 @@ procedure_call_statement : CALL_KW ID '(' (expr (',' expr)*)? ')' ;
 
 // Expressions
 expr : MINUS expr                                    # UnaryMinusExpr
+     | NOT expr                                      # NotExpr
+     | expr op=(OR | AND) expr                       # LogicExpr
      | expr op=POW expr                              # MathExpr
      | expr op=(MULT | DIV_KW | MOD_KW | SLASH) expr # MathExpr
      | expr op=(PLUS | MINUS) expr                   # MathExpr
@@ -105,6 +107,7 @@ expr : MINUS expr                                    # UnaryMinusExpr
      | FALSE_KW                                      # BoolExpr
      | '(' expr ')'                                  # ParenExpr
      | array_access                                  # ArrayExpr
+     | STRING                                        # StringExpr
      ;
 
 // Vocabulary
@@ -157,6 +160,11 @@ RETURN_TYPE_KW : 'ΑΚΕΡΑΙΑ' | 'ΠΡΑΓΜΑΤΙΚΗ' | 'ΛΟΓΙΚΗ' | '�
 //Boolean Constants
 TRUE_KW    : 'ΑΛΗΘΗΣ' ;
 FALSE_KW   : 'ΨΕΥΔΗΣ' ;
+
+//Boolean Operators
+AND : 'ΚΑΙ' ;
+OR  : 'Η'   ;
+NOT : 'ΟΧΙ' ;
 
 // Operators
 ASSIGN     : '<-'  ;
