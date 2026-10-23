@@ -122,7 +122,7 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     public String visitVar_decl(GlwssaParser.Var_declContext ctx)
     {
         String glwssaType = ctx.TYPE_KW().getText();
-        String javaBaseType = switch (glwssaType)
+        String javaPrimitive = switch (glwssaType)
         {
             case "ΑΚΕΡΑΙΕΣ:" -> "int";
             case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
@@ -131,62 +131,45 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             default -> "Object";
         };
 
+        String javaWrapper = getWrapperType(javaPrimitive);
+        String defaultVal = Utils.getDefaultValue(javaPrimitive);
         StringBuilder declarationsCode = new StringBuilder();
-        String defaultVal = Utils.getDefaultValue(javaBaseType);
 
-        // Τρέχουμε για κάθε var_def (είτε είναι απλό ID είτε πίνακας)
         for (GlwssaParser.Var_defContext varDefCtx : ctx.var_def())
         {
             String varName = Utils.toGreeklish(varDefCtx.ID().getText());
 
-            boolean alreadyExists;
-            if (inSubprogram) {
-                alreadyExists = symbolTableSubroutines.containsKey(varName);
-            } else {
-                alreadyExists = symbolTable.containsKey(varName);
-            }
-
+            boolean alreadyExists = inSubprogram ? symbolTableSubroutines.containsKey(varName) : symbolTable.containsKey(varName);
             if (alreadyExists) {
-                // Το μήνυμα παραμένει ουδέτερο, καθώς καλύπτει τόσο σταθερές όσο και διπλο-δηλωμένες μεταβλητές
                 throw new TranspilationException("Το αναγνωριστικό '" + varDefCtx.ID().getText() + "' έχει ήδη δηλωθεί.");
             }
 
-            // 1. Ελέγχουμε αν έχει διαστάσεις (Πίνακας)
             if (varDefCtx.NUMBER() != null && !varDefCtx.NUMBER().isEmpty())
             {
                 StringBuilder brackets = new StringBuilder();
                 StringBuilder sizes = new StringBuilder();
-
                 for (org.antlr.v4.runtime.tree.TerminalNode numNode : varDefCtx.NUMBER()) {
                     brackets.append("[]");
                     sizes.append("[").append(numNode.getText()).append("]");
                 }
 
-                String arrayType = javaBaseType + brackets.toString();
-                if (inSubprogram) {
-                    symbolTableSubroutines.put(varName, arrayType);
-                } else {
-                    symbolTable.put(varName, arrayType);
-                }
+                String arrayType = javaPrimitive + brackets.toString();
+                if (inSubprogram) symbolTableSubroutines.put(varName, arrayType);
+                else symbolTable.put(varName, arrayType);
 
-                // Δημιουργεί: int[] A = new int[10];
                 declarationsCode.append(arrayType).append(" ").append(varName)
-                        .append(" = new ").append(javaBaseType).append(sizes.toString()).append(";\n");
+                        .append(" = new ").append(javaPrimitive).append(sizes.toString()).append(";\n");
             }
-            else // 2. Απλή μεταβλητή
+            else
             {
-                if (inSubprogram) {
-                    symbolTableSubroutines.put(varName, javaBaseType);
-                } else {
-                    symbolTable.put(varName, javaBaseType);
-                }
+                // Instantiate as Wrappers universally
+                if (inSubprogram) symbolTableSubroutines.put(varName, javaWrapper);
+                else symbolTable.put(varName, javaWrapper);
 
-                // Δημιουργεί: int A = 0;
-                declarationsCode.append(javaBaseType).append(" ").append(varName)
-                        .append(" = ").append(defaultVal).append(";\n");
+                declarationsCode.append(javaWrapper).append(" ").append(varName)
+                        .append(" = new ").append(javaWrapper).append("(").append(defaultVal).append(");\n");
             }
         }
-
         return declarationsCode.toString();
     }
 
@@ -207,27 +190,26 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     public String visitConst_decl(GlwssaParser.Const_declContext ctx)
     {
         String varName = Utils.toGreeklish(ctx.ID().getText());
-        String valueExpr = visit(ctx.expr()); //εξαγωγή τιμής
+        String valueExpr = visit(ctx.expr());
 
-        // πολύ απλό type inference τιμής αρχικοποίησης
-        String javaBaseType = "int"; // Προεπιλογή
+        String javaPrimitive = "int";
         if (valueExpr.startsWith("\"")) {
-            javaBaseType = "String";
+            javaPrimitive = "String";
         } else if (valueExpr.equals("true") || valueExpr.equals("false")) {
-            javaBaseType = "boolean";
+            javaPrimitive = "boolean";
         } else if (valueExpr.contains(".")) {
-            javaBaseType = "double";
+            javaPrimitive = "double";
         }
 
-        // Καταγραφή στο σωστό εύρος
+        String javaWrapper = getWrapperType(javaPrimitive);
+
         if (inSubprogram) {
-            symbolTableSubroutines.put(varName, javaBaseType);
+            symbolTableSubroutines.put(varName, javaWrapper);
         } else {
-            symbolTable.put(varName, javaBaseType);
+            symbolTable.put(varName, javaWrapper);
         }
 
-        // Παραγωγή Java κώδικα με χρήση του 'final var' για απόλυτη συμβατότητα
-        return "final var " + varName + " = " + valueExpr + ";\n";
+        return "final " + javaWrapper + " " + varName + " = new " + javaWrapper + "(" + valueExpr + ");\n";
     }
 
     @Override
@@ -297,18 +279,18 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
 
         if (operator.equals("DIV"))
         {
-            operator = "/";
+            return "Math.floorDiv(" + left + ", " + right + ")";
         }
         if (operator.equals("MOD"))
         {
-            operator = "%";
+            return "Math.floorMod(" + left + ", " + right + ")";
         }
         if (operator.equals("^"))
         {
             return "Math.pow(" + left + ", " + right + ")";
         }
 
-        return "( " + left + " " + operator + " " + right + " )";
+        return "( (double)" + left + " " + operator + " " + right + " )";
     }
 
     @Override
@@ -646,6 +628,11 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String end = visit(ctx.expr(1));
         String step = (ctx.expr().size() == 3) ? visit(ctx.expr(2)) : "1";
 
+        if(step.equals("0"))
+        {
+            throw new TranspilationException("Το βήμα δεν μπορεί να είναι 0.");//todo
+        }
+
         try {
             double stepFloat = Double.parseDouble(step);
 
@@ -761,15 +748,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         String functionName = Utils.toGreeklish(ctx.ID().getText());
         String glwssaReturnType = ctx.RETURN_TYPE_KW().getText();
 
-        if (subprogramNameTable.containsKey(functionName))
-        {
+        if (subprogramNameTable.containsKey(functionName)) {
             throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(functionName) + " με όνομα " + ctx.ID().getText());
         }
-
         subprogramNameTable.put(functionName, "συνάρτηση");
 
-        String javaReturnType = switch (glwssaReturnType)
-        {
+        String javaReturnType = switch (glwssaReturnType) {
             case "ΑΚΕΡΑΙΑ" -> "int";
             case "ΠΡΑΓΜΑΤΙΚΗ" -> "double";
             case "ΛΟΓΙΚΗ" -> "boolean";
@@ -777,14 +761,11 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
             default -> "Object";
         };
 
-        Map<String, String> localVarTypes = new HashMap<>();
-        if (ctx.declarations() != null)
-        {
-            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
-            {
+        Map<String, String> rawTypes = new HashMap<>();
+        if (ctx.declarations() != null) {
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl()) {
                 String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch (typeKW)
-                {
+                String javaPrimitive = switch (typeKW) {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
                     case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
                     case "ΛΟΓΙΚΕΣ:" -> "boolean";
@@ -792,13 +773,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                     default -> "Object";
                 };
 
-                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
-                {
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def()) {
                     String arrBrackets = "";
                     if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
                         for (int k = 0; k < defCtx.NUMBER().size(); k++) arrBrackets += "[]";
                     }
-                    localVarTypes.put(Utils.toGreeklish(defCtx.ID().getText()), javaType + arrBrackets);
+                    rawTypes.put(Utils.toGreeklish(defCtx.ID().getText()), javaPrimitive + arrBrackets);
                 }
             }
         }
@@ -806,19 +786,17 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder parametersCode = new StringBuilder();
         java.util.List<String> paramNames = new ArrayList<>();
 
-        if (ctx.param_list() != null)
-        {
+        if (ctx.param_list() != null) {
             java.util.List<org.antlr.v4.runtime.tree.TerminalNode> paramIdNodes = ctx.param_list().ID();
-            for (int i = 0; i < paramIdNodes.size(); i++)
-            {
+            for (int i = 0; i < paramIdNodes.size(); i++) {
                 String paramName = Utils.toGreeklish(paramIdNodes.get(i).getText());
                 paramNames.add(paramName);
 
-                String paramType = localVarTypes.getOrDefault(paramName, "int");
+                // Functions retain primitive parameters (pass-by-value)
+                String paramType = rawTypes.getOrDefault(paramName, "int");
                 symbolTableSubroutines.put(paramName, paramType);
                 parametersCode.append(paramType).append(" ").append(paramName);
-                if (i < paramIdNodes.size() - 1)
-                    parametersCode.append(", ");
+                if (i < paramIdNodes.size() - 1) parametersCode.append(", ");
             }
         }
 
@@ -826,48 +804,42 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         functionCode.append("    ").append(javaReturnType).append(" ").append(functionName).append(" = ").append(Utils.getDefaultValue(javaReturnType)).append(";\n");
         symbolTableSubroutines.put(functionName, javaReturnType);
 
-        if (ctx.declarations() != null)
-        {
-            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
-            {
+        if (ctx.declarations() != null) {
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl()) {
                 String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch (typeKW)
-                {
+                String javaPrimitive = switch (typeKW) {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
-                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
                     case "ΛΟΓΙΚΕΣ:" -> "boolean";
                     case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
                     default -> "Object";
                 };
+                String javaWrapper = getWrapperType(javaPrimitive);
+                String defaultVal = Utils.getDefaultValue(javaPrimitive);
 
-                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
-                {
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def()) {
                     String varName = Utils.toGreeklish(defCtx.ID().getText());
-                    if (!paramNames.contains(varName))
-                    {
+                    if (!paramNames.contains(varName)) {
                         if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
-                            String brackets = "";
-                            String sizes = "";
+                            String brackets = "", sizes = "";
                             for (org.antlr.v4.runtime.tree.TerminalNode numNode : defCtx.NUMBER()) {
-                                brackets += "[]";
-                                sizes += "[" + numNode.getText() + "]";
+                                brackets += "[]"; sizes += "[" + numNode.getText() + "]";
                             }
-                            String arrayType = javaType + brackets;
+                            String arrayType = javaPrimitive + brackets;
                             symbolTableSubroutines.put(varName, arrayType);
                             functionCode.append("    ").append(arrayType).append(" ").append(varName)
-                                    .append(" = new ").append(javaType).append(sizes).append(";\n");
+                                    .append(" = new ").append(javaPrimitive).append(sizes).append(";\n");
                         } else {
-                            symbolTableSubroutines.put(varName, javaType);
-                            functionCode.append("    ").append(javaType).append(" ").append(varName)
-                                    .append(" = ").append(Utils.getDefaultValue(javaType)).append(";\n");
+                            symbolTableSubroutines.put(varName, javaWrapper);
+                            functionCode.append("    ").append(javaWrapper).append(" ").append(varName)
+                                    .append(" = new ").append(javaWrapper).append("(").append(defaultVal).append(");\n");
                         }
                     }
                 }
             }
         }
 
-        for (GlwssaParser.StatementContext stmntCtx : ctx.statement())
-        {
+        for (GlwssaParser.StatementContext stmntCtx : ctx.statement()) {
             functionCode.append("    ").append(visit(stmntCtx)).append("\n");
         }
 
@@ -887,24 +859,16 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder procedureCode = new StringBuilder();
         String procedureName = Utils.toGreeklish(ctx.ID().getText());
 
-
-        if (subprogramNameTable.containsKey(procedureName))
-        {
+        if (subprogramNameTable.containsKey(procedureName)) {
             throw new TranspilationException("Έχει ήδη δηλωθεί " + subprogramNameTable.get(procedureName) + " με όνομα " + ctx.ID().getText());
         }
-
         subprogramNameTable.put(procedureName, "διαδικασία");
 
-
-        Map<String, String> declaredTypes = new HashMap<>();
-
-        if (ctx.declarations() != null)
-        {
-            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
-            {
+        Map<String, String> rawTypes = new HashMap<>();
+        if (ctx.declarations() != null) {
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl()) {
                 String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch (typeKW)
-                {
+                String javaPrimitive = switch (typeKW) {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
                     case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
                     case "ΛΟΓΙΚΕΣ:" -> "boolean";
@@ -912,13 +876,12 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
                     default -> "Object";
                 };
 
-                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
-                {
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def()) {
                     String arrBrackets = "";
                     if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
                         for (int k = 0; k < defCtx.NUMBER().size(); k++) arrBrackets += "[]";
                     }
-                    declaredTypes.put(Utils.toGreeklish(defCtx.ID().getText()), javaType + arrBrackets);
+                    rawTypes.put(Utils.toGreeklish(defCtx.ID().getText()), javaPrimitive + arrBrackets);
                 }
             }
         }
@@ -926,79 +889,67 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder parametersCode = new StringBuilder();
         java.util.List<String> paramNames = new ArrayList<>();
 
-        if (ctx.param_list() != null)
-        {
+        if (ctx.param_list() != null) {
             java.util.List<org.antlr.v4.runtime.tree.TerminalNode> parameterNodes = ctx.param_list().ID();
-
-            for (int i = 0; i < parameterNodes.size(); i++)
-            {
+            for (int i = 0; i < parameterNodes.size(); i++) {
                 String parameterName = Utils.toGreeklish(parameterNodes.get(i).getText());
                 paramNames.add(parameterName);
 
-                String baseType = declaredTypes.getOrDefault(parameterName, "int");
+                String baseType = rawTypes.getOrDefault(parameterName, "int");
 
-                // Κρίσιμο: Οι πίνακες στη Java είναι ΗΔΗ references. Δεν θέλουν Wrapper.
                 if (baseType.contains("[]")) {
                     symbolTableSubroutines.put(parameterName, baseType);
                     parametersCode.append(baseType).append(" ").append(parameterName);
                 } else {
                     String wrapperType = getWrapperType(baseType);
-                    symbolTableSubroutines.put(parameterName, wrapperType);
+                    symbolTableSubroutines.put(parameterName, wrapperType); // Store as Wrapper
                     parametersCode.append(wrapperType).append(" ").append(parameterName);
                 }
 
-                if (i < parameterNodes.size() - 1)
-                    parametersCode.append(", ");
+                if (i < parameterNodes.size() - 1) parametersCode.append(", ");
             }
         }
 
         procedureCode.append("public static void ").append(procedureName).append("( ").append(parametersCode).append(" )\n{\n");
 
-        if (ctx.declarations() != null)
-        {
-            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl())
-            {
+        if (ctx.declarations() != null) {
+            for (GlwssaParser.Var_declContext varCtx : ctx.declarations().var_decl()) {
                 String typeKW = varCtx.TYPE_KW().getText();
-                String javaType = switch (typeKW)
-                {
+                String javaPrimitive = switch (typeKW) {
                     case "ΑΚΕΡΑΙΕΣ:" -> "int";
-                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "float";
+                    case "ΠΡΑΓΜΑΤΙΚΕΣ:" -> "double";
                     case "ΛΟΓΙΚΕΣ:" -> "boolean";
                     case "ΧΑΡΑΚΤΗΡΕΣ:" -> "String";
                     default -> "Object";
                 };
+                String javaWrapper = getWrapperType(javaPrimitive);
+                String defaultVal = Utils.getDefaultValue(javaPrimitive);
 
-                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def())
-                {
+                for (GlwssaParser.Var_defContext defCtx : varCtx.var_def()) {
                     String variableName = Utils.toGreeklish(defCtx.ID().getText());
-                    if (!paramNames.contains(variableName))
-                    {
+                    if (!paramNames.contains(variableName)) {
                         if (defCtx.NUMBER() != null && !defCtx.NUMBER().isEmpty()) {
-                            String brackets = "";
-                            String sizes = "";
+                            String brackets = "", sizes = "";
                             for (org.antlr.v4.runtime.tree.TerminalNode numNode : defCtx.NUMBER()) {
-                                brackets += "[]";
-                                sizes += "[" + numNode.getText() + "]";
+                                brackets += "[]"; sizes += "[" + numNode.getText() + "]";
                             }
-                            String arrayType = javaType + brackets;
+                            String arrayType = javaPrimitive + brackets;
                             symbolTableSubroutines.put(variableName, arrayType);
                             procedureCode.append("    ").append(arrayType).append(" ").append(variableName)
-                                    .append(" = new ").append(javaType).append(sizes).append(";\n");
+                                    .append(" = new ").append(javaPrimitive).append(sizes).append(";\n");
                         } else {
-                            symbolTableSubroutines.put(variableName, javaType);
-                            procedureCode.append("    ").append(javaType).append(" ").append(variableName)
-                                    .append(" = ").append(Utils.getDefaultValue(javaType)).append(";\n");
+                            symbolTableSubroutines.put(variableName, javaWrapper);
+                            procedureCode.append("    ").append(javaWrapper).append(" ").append(variableName)
+                                    .append(" = new ").append(javaWrapper).append("(").append(defaultVal).append(");\n");
                         }
                     }
                 }
             }
         }
 
-        for (GlwssaParser.StatementContext stmntCtx : ctx.statement())
-        {
+        for (GlwssaParser.StatementContext stmntCtx : ctx.statement()) {
             procedureCode.append("    ").append(visit(stmntCtx)).append("\n");
         }
-
         procedureCode.append("}\n\n");
 
         inSubprogram = false;
@@ -1011,25 +962,30 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
         StringBuilder callCode = new StringBuilder();
         String procName = Utils.toGreeklish(ctx.ID().getText());
 
-        if (!subprogramNameTable.containsKey(procName))
-        {
+        if (!subprogramNameTable.containsKey(procName)) {
             throw new TranspilationException("Δεν υπάρχει διαδικασία με όνομα '" + ctx.ID().getText() + "'.");
         }
 
-        if ("συνάρτηση".equals(subprogramNameTable.get(procName)))
-        {
+        if ("συνάρτηση".equals(subprogramNameTable.get(procName))) {
             throw new TranspilationException("Η συνάρτηση '" + ctx.ID().getText() + "' δεν μπορεί να κληθεί με την εντολή ΚΑΛΕΣΕ.");
         }
 
         callCode.append(procName).append("(");
 
-        if (ctx.expr() != null && !ctx.expr().isEmpty())
-        {
-            for (int i = 0; i < ctx.expr().size(); i++)
-            {
-                callCode.append(visit(ctx.expr(i)));
-                if (i < ctx.expr().size() - 1)
-                {
+        if (ctx.expr() != null && !ctx.expr().isEmpty()) {
+            for (int i = 0; i < ctx.expr().size(); i++) {
+                GlwssaParser.ExprContext argCtx = ctx.expr(i);
+
+                if (argCtx instanceof GlwssaParser.IdExprContext) {
+                    // Intercept simple variables to pass the reference directly
+                    String varName = Utils.toGreeklish(((GlwssaParser.IdExprContext) argCtx).ID().getText());
+                    callCode.append(varName);
+                } else {
+                    // It is an array or complex expression
+                    callCode.append(visit(argCtx));
+                }
+
+                if (i < ctx.expr().size() - 1) {
                     callCode.append(", ");
                 }
             }
