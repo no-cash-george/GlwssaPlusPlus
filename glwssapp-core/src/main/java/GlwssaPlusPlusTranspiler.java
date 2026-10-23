@@ -17,6 +17,11 @@ public class GlwssaPlusPlusTranspiler extends GlwssaBaseVisitor<String>
     {
         String programName = Utils.toGreeklish(ctx.ID().getText()); // get program name and translate to english
 
+        if (programName == null)
+        {
+            throw new TranspilationException("Το πρόγραμμα δεν γίνεται να μην έχει όνομα.");
+        }
+
         StringBuilder mainCode = new StringBuilder();// inside here we will put the translated java code
 
         mainCode.append("public static void main (String[] args) \n{\n");
