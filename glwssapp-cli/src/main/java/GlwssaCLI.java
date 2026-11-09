@@ -77,7 +77,7 @@ public class GlwssaCLI {
 
     /**
      * Τρέχει μια εντολή στο τερματικό του λειτουργικού συστήματος.
-     * Το .inheritIO() εξασφαλίζει ότι το `Scanner(System.in)` της παραγόμενης Java 
+     * Το .inheritIO() εξασφαλίζει ότι το `Scanner(System.in)` της παραγόμενης Java
      * θα διαβάζει κανονικά από το τερματικό που βρισκόμαστε τώρα.
      */
     public static int executeTerminalCommand(String... command) {

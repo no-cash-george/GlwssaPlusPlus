@@ -17,5 +17,6 @@
     <modules>
         <module>glwssapp-core</module>
         <module>glwssapp-ide</module>
+        <module>glwssapp-cli</module>
     </modules>
 </project>

@@ -3,6 +3,7 @@ import org.w3c.dom.ls.LSOutput;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Utils
 {
@@ -68,5 +69,22 @@ public class Utils
         }
 
         return outputFile;
+    }
+
+    public static String extractProgramName(File file) {
+        try (Scanner fileScanner = new Scanner(file)) {
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine().trim();
+                if (line.startsWith("ΠΡΟΓΡΑΜΜΑ")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length > 1) {
+                        return Utils.toGreeklish(parts[1]);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Αγνοούμε τα λάθη ανάγνωσης εδώ, θα έχουν ήδη πιαστεί από τον Transpiler
+        }
+        return null;
     }
 }

@@ -22,7 +22,7 @@ public class ProgramRunner {
             DeveloperTools.showErrorWindow(e.getMessage());
         }
 
-        String programName = GlwssaCLI.extractProgramName(file);
+        String programName = Utils.extractProgramName(file);
         if (programName == null) {
             System.err.println("ΣΦΑΛΜΑ: Δεν βρέθηκε η δήλωση 'ΠΡΟΓΡΑΜΜΑ [όνομα]' στο αρχείο.");
             return null;
