@@ -119,7 +119,7 @@
 - ANTLR 4 Runtime (`antlr-runtime-4.x.x.jar`, ίδια έκδοση με αυτήν που παρήγαγε τον κώδικα)
 - IntelliJ IDEA (προτείνεται) με το ANTLR v4 plugin
 
-### Αναλυτικές Πληροφορίες στο [Build Tutorial]()
+### Αναλυτικές Πληροφορίες στο [Build Tutorial](https://github.com/no-cash-george/GlwssaPlusPlus/blob/main/Build-Tutorial.md)
 
 ---
 
