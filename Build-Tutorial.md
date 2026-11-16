@@ -1,39 +1,163 @@
-# ⚙️ Φάση 1: Προετοιμασία & Ρύθμιση του IntelliJ IDEA (Κοινό και στα δύο OS)
-### Πριν ξεκινήσει το build, το IntelliJ πρέπει να ρυθμιστεί ώστε να "καταλαβαίνει" το GraalVM και τη βιβλιοθήκη του ANTLR4.
-1. Άνοιγμα του Project: • Άνοιξε το IntelliJ και επίλεξε Open, επιλέγοντας τον ριζικό φάκελο του project (GlwssaPlusPlus).
-2. Ρύθμιση του GraalVM JDK 21: • Πήγαινε στο μενού File > Project Structure (Cmd + ; στο Mac ή Ctrl + Alt + Shift + S στα Windows). • Στην καρτέλα Project, βεβαιώσου ότι το SDK είναι ρυθμισμένο στο GraalVM JDK 21. Αν δεν υπάρχει, πάτα Add SDK > Download JDK, επίλεξε GraalVM ως Vendor και 21 ως Version. • Στο Language level, επίλεξε 21 - String templates, unnamed classes and instance main methods etc..
-3. Προσθήκη του ANTLR4 Runtime: • Κατέβασε το antlr-runtime-4.x.x.jar (την ίδια έκδοση με αυτή που έκανε generate τον κώδικα). • Στο Project Structure, πήγαινε στην καρτέλα Libraries. • Πάτα το + > Java, βρες το .jar του ANTLR4 που κατέβασες και πρόσθεσέ το στο project.
-# ☕ Φάση 2: Compile σε Java Bytecode (Εντός IntelliJ)
-### Αυτό το βήμα ελέγχει τον κώδικα για σφάλματα και παράγει τα αρχεία .class.
-1. Στο κεντρικό μενού του IntelliJ, πάτα Build > Build Project (ή το εικονίδιο με το πράσινο σφυράκι).
-2. Το IntelliJ θα δημιουργήσει έναν φάκελο out/production/GlwssaPlusPlus (ή το όνομα του project σου), όπου θα βρίσκονται όλα τα compiled .class αρχεία (π.χ. GlwssaCLI.class, GlwssaPlusPlusCompiler.class κτλ.).
-3. Δοκιμή (Προαιρετικό): Μπορείς να κάνεις δεξί κλικ στο αρχείο GlwssaCLI.java και να πατήσεις Run 'GlwssaCLI.main()' για να βεβαιωθείς ότι το εργαλείο τρέχει σωστά μέσω της JVM.
-# 📦 Φάση 3: Παραγωγή Native Image (Ανά Λειτουργικό Σύστημα)
-## Όπως είναι γνωστό, το εσωτερικό build system του IntelliJ δεν υποστηρίζει εγγενώς την παραγωγή Native Image artifacts. Η διαδικασία αυτή γίνεται μέσω της γραμμής εντολών, αξιοποιώντας τα .class αρχεία που μόλις έφτιαξε το IntelliJ.
-### 🍏 Για χρήστες macOS
-#### Το GraalVM στο macOS απαιτεί τα εργαλεία μεταγλώττισης του Xcode (C/C++ toolchain).
-#### Προαπαιτούμενο: Άνοιξε το τερματικό και τρέξε xcode-select --install (αν δεν το έχεις ήδη κάνει).
-1. Άνοιξε το ενσωματωμένο Terminal στο κάτω μέρος του IntelliJ.
-2. Πλοηγήσου στον φάκελο όπου το IntelliJ έκανε export τα compiled classes:
-````
- cd out/production/GlwssaPlusPlus
-````
-3. Εκτέλεσε το εργαλείο του GraalVM (βεβαιώσου ότι το path του ANTLR jar περιλαμβάνεται):
-````
-   native-image -cp ".:/path/to/your/antlr-runtime.jar" GlwssaCLI glwssa  • Αποτέλεσμα: Θα δημιουργηθεί ένα εκτελέσιμο αρχείο με το όνομα glwssa μέσα στον ίδιο φάκελο.
-````
-### 🪟 Για χρήστες Windows
-#### Η παραγωγή native binary στα Windows είναι ελαφρώς πιο απαιτητική, καθώς το GraalVM χρειάζεται το περιβάλλον της Microsoft (MSVC).
-#### Προαπαιτούμενο: Πρέπει να έχεις εγκατεστημένα τα Visual Studio Build Tools με επιλεγμένο το Desktop development with C++.
-1. Στα Windows, δεν θα χρησιμοποιήσεις το απλό τερματικό του IntelliJ (PowerShell/CMD). Πρέπει να ανοίξεις το ειδικό τερματικό προγραμματιστή:
-   • Πάτα το κουμπί Έναρξης (Start) των Windows.
-   • Ψάξε για x64 Native Tools Command Prompt for VS (Είναι απαραίτητο για να δει το GraalVM τους C++ compilers).
-3. Μέσα από αυτό το τερματικό, πλοηγήσου στον φάκελο παραγωγής του IntelliJ:
-````
-   cd C:\Διαδρομή\Προς\Το\Project\Σου\out\production\GlwssaPlusPlus
-````
-5. Εκτέλεσε την εντολή παραγωγής:
-````
-  native-image.cmd -cp ".;C:\Διαδρομή\Προς\Το\antlr-runtime.jar" GlwssaCLI glwssa.exe  • Αποτέλεσμα: Μετά από λίγα λεπτά, θα παραχθεί το αυτόνομο εκτελέσιμο glwssa.exe.
-````
-### •	Αποτέλεσμα: Μετά από λίγα λεπτά, θα παραχθεί το αυτόνομο εκτελέσιμο glwssa.exe.
+# Οδηγίες Build και Πακεταρίσματος
+
+Το Glwssa++ πακετάρεται σε αυτόνομους εγκαταστάτες με το εργαλείο **`jpackage`** του JDK. Ο εγκαταστάτης περιλαμβάνει ενσωματωμένο Java runtime, οπότε ο τελικός χρήστης δεν χρειάζεται να έχει εγκατεστημένη Java.
+
+Η διαδικασία είναι αυτοματοποιημένη με το GitHub Actions workflow **Build native installers** (`.github/workflows/build-binaries.yml`). Αυτό το έγγραφο περιγράφει πώς το τρέχεις και πώς αναπαράγεις τα ίδια βήματα τοπικά.
+
+| Λειτουργικό | Runner | Τύπος εγκαταστάτη |
+|---|---|---|
+| Linux | `ubuntu-latest` | `.deb` |
+| Windows | `windows-latest` | `.exe` |
+| macOS | `macos-latest` (Apple Silicon, arm64) | `.dmg` |
+
+> Το `jpackage` δεν υποστηρίζει cross-platform builds. Ο εγκαταστάτης για κάθε λειτουργικό πρέπει να χτιστεί σε αυτό το λειτουργικό, γι’ αυτό το workflow τρέχει ένα job ανά πλατφόρμα.
+
+---
+
+## 1. Build μέσω GitHub Actions
+
+Το workflow εκκινείται μόνο χειροκίνητα (`workflow_dispatch`).
+
+1. Άνοιξε το tab **Actions** του repository.
+2. Επίλεξε το workflow **Build native installers**.
+3. Πάτα **Run workflow** και διάλεξε το branch (π.χ. `main`).
+4. Περίμενε να ολοκληρωθούν τα τρία jobs (`linux`, `windows`, `macos`). Τρέχουν ανεξάρτητα, και αν αποτύχει το ένα δεν ακυρώνονται τα υπόλοιπα (`fail-fast: false`).
+5. Στη σελίδα του run, στην ενότητα **Artifacts**, κατέβασε τον εγκαταστάτη που χρειάζεσαι:
+   - `GlwssaPlusPlus-linux`
+   - `GlwssaPlusPlus-windows`
+   - `GlwssaPlusPlus-macos`
+
+Τα artifacts διατηρούνται για **14 ημέρες**. Για μόνιμη διάθεση, ανέβασέ τα σε ένα Release.
+
+### Τι κάνει το workflow
+
+Κάθε job εκτελεί τα ίδια βήματα:
+
+1. **Checkout** του κώδικα.
+2. **Εγκατάσταση Azul Zulu JDK 21**, με cache του Maven.
+3. **Εγκατάσταση WiX 3** (μόνο στα Windows, μέσω Chocolatey), που απαιτείται για τη δημιουργία `.exe`.
+4. **Build όλων των modules** και εγκατάσταση στο τοπικό Maven repository:
+   ```bash
+   mvn -B -ntp clean install -DskipTests
+   ```
+5. **Συλλογή των runtime εξαρτήσεων** στον φάκελο `input/`, μαζί με το JAR του IDE.
+6. **Πακετάρισμα με `jpackage`** στον φάκελο `dist/`.
+7. **Ανέβασμα του `dist/*`** ως artifact.
+
+---
+
+## 2. Τοπικό build
+
+Τα βήματα αντιστοιχούν ένα προς ένα με αυτά του workflow.
+
+### Προαπαιτούμενα
+- **JDK 21** (το CI χρησιμοποιεί Azul Zulu 21)
+- **Maven**
+- **Windows μόνο:** [WiX Toolset 3](https://wixtoolset.org/), για τα πακέτα `exe`/`msi`
+- Ένα bash shell (στα Windows, π.χ. Git Bash), επειδή το workflow τρέχει όλα τα βήματα με `bash`
+
+### Βήμα 1: Build των modules
+
+Από τη ρίζα του repository:
+
+```bash
+mvn -B -ntp clean install -DskipTests
+```
+
+### Βήμα 2: Συλλογή των εξαρτήσεων
+
+Αντιγράφουμε τις runtime εξαρτήσεις του module `glwssapp-ide` και το ίδιο το JAR του σε έναν φάκελο `input/`:
+
+```bash
+mvn -B -ntp -pl glwssapp-ide dependency:copy-dependencies \
+  -DoutputDirectory="$PWD/input" \
+  -DincludeScope=runtime
+
+cp glwssapp-ide/target/glwssapp-ide-1.0-SNAPSHOT.jar input/
+```
+
+### Βήμα 3: Πακετάρισμα με jpackage
+
+Όρισε πρώτα τις μεταβλητές (οι ίδιες τιμές με το workflow):
+
+```bash
+APP_NAME=GlwssaPlusPlus
+APP_VERSION=1.0.0
+MAIN_CLASS=Launcher
+IDE_JAR=glwssapp-ide-1.0-SNAPSHOT.jar
+
+mkdir -p dist
+```
+
+Στη συνέχεια τρέξε την εντολή που αντιστοιχεί στο λειτουργικό σου.
+
+**Linux (`.deb`)**
+```bash
+jpackage \
+  --type deb \
+  --name "$APP_NAME" \
+  --app-version "$APP_VERSION" \
+  --input input \
+  --main-jar "$IDE_JAR" \
+  --main-class "$MAIN_CLASS" \
+  --dest dist \
+  --linux-shortcut --linux-menu-group Development
+```
+
+**Windows (`.exe`)**
+```bash
+jpackage \
+  --type exe \
+  --name "$APP_NAME" \
+  --app-version "$APP_VERSION" \
+  --input input \
+  --main-jar "$IDE_JAR" \
+  --main-class "$MAIN_CLASS" \
+  --dest dist \
+  --win-menu --win-shortcut --win-dir-chooser
+```
+
+**macOS (`.dmg`)**
+```bash
+jpackage \
+  --type dmg \
+  --name "$APP_NAME" \
+  --app-version "$APP_VERSION" \
+  --input input \
+  --main-jar "$IDE_JAR" \
+  --main-class "$MAIN_CLASS" \
+  --dest dist
+```
+
+Ο εγκαταστάτης δημιουργείται στον φάκελο `dist/`.
+
+---
+
+## 3. Παράμετροι
+
+| Μεταβλητή | Τιμή | Περιγραφή |
+|---|---|---|
+| `APP_NAME` | `GlwssaPlusPlus` | Όνομα της εφαρμογής και του εγκαταστάτη |
+| `APP_VERSION` | `1.0.0` | Έκδοση του πακέτου. Το `jpackage` δέχεται μόνο αριθμητική έκδοση |
+| `MAIN_CLASS` | `Launcher` | Η κλάση εκκίνησης της εφαρμογής |
+| `IDE_JAR` | `glwssapp-ide-1.0-SNAPSHOT.jar` | Το JAR του module `glwssapp-ide`, όπως παράγεται στο `target/` |
+
+Αν αλλάξει η έκδοση του Maven module, ενημέρωσε το `IDE_JAR` ώστε να ταιριάζει με το όνομα του αρχείου στο `glwssapp-ide/target/`.
+
+### Επιλογές ανά πλατφόρμα
+
+| Επιλογή | Λειτουργικό | Αποτέλεσμα |
+|---|---|---|
+| `--linux-shortcut` | Linux | Δημιουργεί συντόμευση |
+| `--linux-menu-group Development` | Linux | Τοποθετεί την εφαρμογή στην κατηγορία *Development* του μενού |
+| `--win-menu` | Windows | Προσθέτει καταχώριση στο Start Menu |
+| `--win-shortcut` | Windows | Δημιουργεί συντόμευση στην επιφάνεια εργασίας |
+| `--win-dir-chooser` | Windows | Επιτρέπει στον χρήστη να διαλέξει φάκελο εγκατάστασης |
+
+---
+
+## Σημειώσεις
+
+- Το workflow δεν υπογράφει τους εγκαταστάτες (signing / notarization). Σε Windows και macOS το λειτουργικό μπορεί να εμφανίσει προειδοποίηση κατά την πρώτη εκτέλεση.
+- Για εγκαταστάτη `msi` αντί για `exe` στα Windows, άλλαξε το `--type` σε `msi`. Για `.pkg` αντί για `.dmg` στο macOS, χρησιμοποίησε `--type pkg`. Για `.rpm` αντί για `.deb` στο Linux, χρησιμοποίησε `--type rpm`.
+- Για γρήγορη δοκιμή χωρίς εγκαταστάτη, το `--type app-image` δημιουργεί απλώς τον φάκελο της εφαρμογής.
